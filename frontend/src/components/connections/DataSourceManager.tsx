@@ -166,7 +166,7 @@ export default function DataSourceManager({ connection }: DataSourceManagerProps
           {dataSources.map((dataSource) => (
             <div
               key={dataSource.id}
-              className="flex items-center justify-between p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
+              className="flex items-center justify-between p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-all duration-200 hover:shadow-md hover:scale-[1.01] hover:-translate-y-0.5"
             >
               <div className="flex items-center gap-3">
                 {dataSource.is_active ? (
@@ -181,18 +181,20 @@ export default function DataSourceManager({ connection }: DataSourceManagerProps
               </div>
               <div className="flex gap-2">
                 <button
+                  type="button"
                   onClick={() => handleEdit(dataSource)}
-                  className="p-2 text-gray-600 hover:bg-white rounded-md transition-colors"
+                  className="p-2 text-gray-600 hover:bg-white rounded-md transition-all duration-200 hover:scale-110 hover:text-blue-600"
                   title="Edit"
                 >
-                  <PencilIcon className="w-4 h-4" />
+                  <PencilIcon className="w-4 h-4 transition-transform duration-200" />
                 </button>
                 <button
+                  type="button"
                   onClick={() => handleDelete(dataSource.id)}
-                  className="p-2 text-red-600 hover:bg-white rounded-md transition-colors"
+                  className="p-2 text-red-600 hover:bg-white rounded-md transition-all duration-200 hover:scale-110 hover:text-red-700"
                   title="Delete"
                 >
-                  <TrashIcon className="w-4 h-4" />
+                  <TrashIcon className="w-4 h-4 transition-transform duration-200" />
                 </button>
               </div>
             </div>
@@ -219,10 +221,11 @@ export default function DataSourceManager({ connection }: DataSourceManagerProps
               {discoverResult.items?.map((item) => (
                 <button
                   key={item.identifier}
+                  type="button"
                   onClick={() => handleSelectDiscovered(item)}
-                  className="w-full text-left p-3 bg-gray-50 hover:bg-blue-50 rounded-md transition-colors"
+                  className="w-full text-left p-3 bg-gray-50 hover:bg-blue-50 rounded-md transition-all duration-200 hover:shadow-sm hover:scale-[1.02] hover:-translate-y-0.5"
                 >
-                  <div className="font-medium text-gray-900">{item.name}</div>
+                  <div className="font-medium text-gray-900 transition-colors duration-200">{item.name}</div>
                   <div className="text-sm text-gray-600">{item.identifier}</div>
                 </button>
               ))}

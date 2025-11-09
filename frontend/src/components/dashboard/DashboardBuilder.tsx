@@ -7,7 +7,7 @@ import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
 export interface DashboardWidget extends Layout {
-  chartId?: number;
+  chartId?: string;
 }
 
 interface DashboardBuilderProps {
@@ -60,7 +60,7 @@ export default function DashboardBuilder({
     setConfigModalOpen(true);
   };
 
-  const handleSaveWidgetConfig = (chartId: number) => {
+  const handleSaveWidgetConfig = (chartId: string) => {
     if (selectedWidgetId) {
       const updatedLayout = initialLayout.map((widget) => {
         if (widget.i === selectedWidgetId) {

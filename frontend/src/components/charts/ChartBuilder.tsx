@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChartStore } from '../../store/chartStore';
 import { useToastStore } from '../../store/toastStore';
@@ -7,6 +7,9 @@ import { DataSource } from '../../types/dataSource';
 import { ChartType } from '../../types/chart';
 import Button from '../common/Button';
 import Input from '../common/Input';
+import Textarea from '../common/Textarea';
+import Spinner from '../common/Spinner';
+import FormSection from '../common/FormSection';
 import DataSourceQuickCreate from '../dataSources/DataSourceQuickCreate';
 import {
   PlusIcon,
@@ -23,7 +26,6 @@ export default function ChartBuilder() {
   const { showToast } = useToastStore();
   const [loadingDataSources, setLoadingDataSources] = useState(true);
   const [dataSources, setDataSources] = useState<DataSource[]>([]);
-  const [filteredDataSources, setFilteredDataSources] = useState<DataSource[]>([]);
   const [showQuickCreate, setShowQuickCreate] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
@@ -45,17 +47,17 @@ export default function ChartBuilder() {
     loadDataSources();
   }, []);
 
-  useEffect(() => {
-    // Filter data sources based on search term
+  // Use useMemo for efficient filtering
+  const filteredDataSources = useMemo(() => {
     if (searchTerm.trim() === '') {
-      setFilteredDataSources(dataSources);
-    } else {
-      const filtered = dataSources.filter((source) =>
-        source.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        source.source_identifier.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredDataSources(filtered);
+      return dataSources;
     }
+
+    const lowerSearch = searchTerm.toLowerCase();
+    return dataSources.filter((source) =>
+      source.name.toLowerCase().includes(lowerSearch) ||
+      source.source_identifier.toLowerCase().includes(lowerSearch)
+    );
   }, [searchTerm, dataSources]);
 
   const loadDataSources = async () => {
@@ -63,7 +65,6 @@ export default function ChartBuilder() {
     try {
       const sources = await dataSourcesApi.getAll();
       setDataSources(sources);
-      setFilteredDataSources(sources);
       if (sources.length > 0 && !formData.data_source_id) {
         setFormData((prev) => ({ ...prev, data_source_id: sources[0].id }));
       }
@@ -112,328 +113,391 @@ export default function ChartBuilder() {
   ];
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-gray-900">Create New Chart</h2>
-        <p className="mt-1 text-sm text-gray-600">
-          Build a chart by selecting a data source and defining your query
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Information */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium text-gray-900">Basic Information</h3>
-
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-              Chart Name *
-            </label>
-            <Input
-              id="name"
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Enter chart name"
-              required
-            />
+    <div className="max-w-5xl mx-auto">
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Basic Information Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <span className="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center mr-3 text-sm">1</span>
+              Basic Information
+            </h3>
+            <p className="text-sm text-gray-600 mt-1 ml-11">Set up your chart name and description</p>
           </div>
-
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
-            <textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Enter chart description (optional)"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              rows={3}
-            />
-          </div>
-        </div>
-
-        {/* Chart Type Selection */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium text-gray-900">Chart Type</h3>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {chartTypes.map((type) => (
-              <button
-                key={type.value}
-                type="button"
-                onClick={() => setFormData({ ...formData, chart_type: type.value })}
-                className={`p-4 border-2 rounded-lg text-center transition-all ${
-                  formData.chart_type === type.value
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="text-3xl mb-2">{type.icon}</div>
-                <div className="text-sm font-medium text-gray-900">{type.label}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Data Source Selection */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium text-gray-900">Data Source</h3>
-            <button
-              type="button"
-              onClick={() => setShowQuickCreate(!showQuickCreate)}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center"
-            >
-              {showQuickCreate ? (
-                <>
-                  <ChevronUpIcon className="w-4 h-4 mr-1" />
-                  Hide Quick Create
-                </>
-              ) : (
-                <>
-                  <PlusIcon className="w-4 h-4 mr-1" />
-                  Create New Data Source
-                </>
-              )}
-            </button>
-          </div>
-
-          {/* Quick Create Section (Collapsible) */}
-          {showQuickCreate && (
-            <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
-              <DataSourceQuickCreate
-                onCreated={handleDataSourceCreated}
-                onCancel={() => setShowQuickCreate(false)}
+          <div className="p-6 space-y-5">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                Chart Name *
+              </label>
+              <Input
+                id="name"
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="e.g., Monthly Sales Report, User Activity Dashboard"
+                required
               />
             </div>
-          )}
 
-          {/* Data Source Selection with Advanced Features */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Select Data Source *
-            </label>
-            {loadingDataSources ? (
-              <div className="text-sm text-gray-600 p-3 bg-gray-50 rounded-md">
-                Loading data sources...
+            <div>
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                Description
+              </label>
+              <textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Provide a brief description of what this chart visualizes..."
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                rows={3}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Chart Type Selection Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <span className="w-8 h-8 rounded-lg bg-purple-500 text-white flex items-center justify-center mr-3 text-sm">2</span>
+              Chart Type
+            </h3>
+            <p className="text-sm text-gray-600 mt-1 ml-11">Choose the visualization type for your data</p>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {chartTypes.map((type) => (
+                <button
+                  key={type.value}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, chart_type: type.value })}
+                  className={`p-5 border-2 rounded-xl text-center transition-all duration-200 transform hover:scale-105 ${
+                    formData.chart_type === type.value
+                      ? 'border-purple-500 bg-purple-50 shadow-md'
+                      : 'border-gray-200 hover:border-purple-300 hover:shadow-sm'
+                  }`}
+                >
+                  <div className="text-4xl mb-3">{type.icon}</div>
+                  <div className="text-sm font-semibold text-gray-900">{type.label}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Data Source Selection Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <span className="w-8 h-8 rounded-lg bg-green-500 text-white flex items-center justify-center mr-3 text-sm">3</span>
+                  Data Source
+                </h3>
+                <p className="text-sm text-gray-600 mt-1 ml-11">Select or create a data source connection</p>
               </div>
-            ) : dataSources.length === 0 ? (
-              <div className="text-sm text-gray-600 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                No data sources available. {!showQuickCreate && 'Click "Create New Data Source" above to get started.'}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {/* Search Input */}
-                <div className="relative">
-                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search data sources by name or identifier..."
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
+              <button
+                type="button"
+                onClick={() => setShowQuickCreate(!showQuickCreate)}
+                className="px-4 py-2 text-sm text-green-700 bg-white hover:bg-green-50 border border-green-300 rounded-lg font-medium flex items-center transition-all duration-200 shadow-sm hover:shadow"
+              >
+                {showQuickCreate ? (
+                  <>
+                    <ChevronUpIcon className="w-4 h-4 mr-1.5" />
+                    Hide Quick Create
+                  </>
+                ) : (
+                  <>
+                    <PlusIcon className="w-4 h-4 mr-1.5" />
+                    Create New
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
 
-                {/* Data Source Cards */}
-                <div className="max-h-80 overflow-y-auto space-y-2 border border-gray-200 rounded-md p-2 bg-gray-50">
-                  {filteredDataSources.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500 text-sm">
-                      No data sources match your search
-                    </div>
-                  ) : (
-                    filteredDataSources.map((source) => (
-                      <button
-                        key={source.id}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, data_source_id: source.id })}
-                        className={`w-full text-left p-3 rounded-md border-2 transition-all ${
-                          formData.data_source_id === source.id
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="flex-shrink-0 mt-1">
-                            {source.source_type === 'database' ? (
-                              <ServerIcon className="h-5 w-5 text-blue-600" />
-                            ) : (
-                              <FolderIcon className="h-5 w-5 text-yellow-600" />
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <h4 className="text-sm font-semibold text-gray-900 truncate">
-                                {source.name}
-                              </h4>
-                              <span className={`ml-2 px-2 py-1 text-xs font-medium rounded-full ${
-                                source.is_active
-                                  ? 'bg-green-100 text-green-800'
-                                  : 'bg-gray-100 text-gray-800'
-                              }`}>
-                                {source.is_active ? 'Active' : 'Inactive'}
-                              </span>
-                            </div>
-                            <p className="text-xs text-gray-600 mt-1">
-                              <span className="font-medium">
-                                {source.source_type === 'database' ? 'Database:' : 'Path:'}
-                              </span>{' '}
-                              {source.source_identifier}
-                            </p>
-                            <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
-                              <span className="capitalize">{source.source_type}</span>
-                              {source.connection && (
-                                <>
-                                  <span>•</span>
-                                  <span>Connection: {source.connection.name}</span>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </button>
-                    ))
-                  )}
-                </div>
-
-                <p className="text-xs text-gray-500">
-                  {filteredDataSources.length} of {dataSources.length} data source{dataSources.length !== 1 ? 's' : ''} shown
-                </p>
+          <div className="p-6 space-y-5">
+            {/* Quick Create Section (Collapsible) */}
+            {showQuickCreate && (
+              <div className="border-2 border-green-200 rounded-xl p-5 bg-green-50/50">
+                <DataSourceQuickCreate
+                  embedded={true}
+                  onCreated={handleDataSourceCreated}
+                  onCancel={() => setShowQuickCreate(false)}
+                />
               </div>
             )}
+
+            {/* Data Source Selection with Advanced Features */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Select Data Source *
+              </label>
+              {loadingDataSources ? (
+                <div className="text-sm text-gray-600 p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center">
+                  <Spinner size="md" color="gray" className="mr-3" />
+                  Loading data sources...
+                </div>
+              ) : dataSources.length === 0 ? (
+                <div className="text-sm text-gray-700 p-5 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+                  <p className="font-semibold mb-1">No data sources available</p>
+                  <p className="text-gray-600">{!showQuickCreate && 'Click "Create New" above to get started.'}</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Search Input */}
+                  <div className="relative">
+                    <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Search data sources by name or identifier..."
+                      className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                    />
+                  </div>
+
+                  {/* Data Source Cards */}
+                  <div className="max-h-96 overflow-y-auto space-y-3 border border-gray-200 rounded-lg p-3 bg-gray-50">
+                    {filteredDataSources.length === 0 ? (
+                      <div className="text-center py-12 text-gray-500">
+                        <MagnifyingGlassIcon className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                        <p className="text-sm font-medium">No data sources match your search</p>
+                      </div>
+                    ) : (
+                      filteredDataSources.map((source) => (
+                        <button
+                          key={source.id}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, data_source_id: source.id })}
+                          className={`w-full text-left p-4 rounded-lg border-2 transition-all duration-200 transform hover:scale-[1.02] ${
+                            formData.data_source_id === source.id
+                              ? 'border-green-500 bg-green-50 shadow-md'
+                              : 'border-gray-200 bg-white hover:border-green-300 hover:bg-gray-50 hover:shadow-sm'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0 mt-1">
+                              {source.source_type === 'database' ? (
+                                <ServerIcon className="h-6 w-6 text-blue-600" />
+                              ) : (
+                                <FolderIcon className="h-6 w-6 text-yellow-600" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <h4 className="text-sm font-bold text-gray-900 truncate">
+                                  {source.name}
+                                </h4>
+                                <span className={`ml-2 px-2.5 py-1 text-xs font-semibold rounded-full ${
+                                  source.is_active
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {source.is_active ? 'Active' : 'Inactive'}
+                                </span>
+                              </div>
+                              <p className="text-xs text-gray-600 mt-1.5">
+                                <span className="font-semibold">
+                                  {source.source_type === 'database' ? 'Database:' : 'Path:'}
+                                </span>{' '}
+                                {source.source_identifier}
+                              </p>
+                              <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-500">
+                                <span className="capitalize font-medium">{source.source_type}</span>
+                                {source.connection && (
+                                  <>
+                                    <span>•</span>
+                                    <span>Connection: {source.connection.name}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+
+                  <p className="text-xs text-gray-500 flex items-center justify-between">
+                    <span>{filteredDataSources.length} of {dataSources.length} data source{dataSources.length !== 1 ? 's' : ''} shown</span>
+                    {searchTerm && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchTerm('')}
+                        className="text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        Clear search
+                      </button>
+                    )}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* SQL Query */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium text-gray-900">SQL Query</h3>
-
-          <div>
-            <label htmlFor="query" className="block text-sm font-medium text-gray-700 mb-1">
-              SQL Query *
-            </label>
-            <textarea
-              id="query"
-              value={formData.query}
-              onChange={(e) => setFormData({ ...formData, query: e.target.value })}
-              placeholder="SELECT column1 as label, column2 as value FROM table_name"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
-              rows={6}
-              required
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              Write a SQL query that returns data for the chart. For most charts, use 'label' and 'value' columns.
-            </p>
+        {/* SQL Query Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-orange-50 to-amber-50 px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <span className="w-8 h-8 rounded-lg bg-orange-500 text-white flex items-center justify-center mr-3 text-sm">4</span>
+              SQL Query
+            </h3>
+            <p className="text-sm text-gray-600 mt-1 ml-11">Define the query to fetch your chart data</p>
           </div>
+          <div className="p-6 space-y-5">
+            <div>
+              <label htmlFor="query" className="block text-sm font-semibold text-gray-700 mb-2">
+                SQL Query *
+              </label>
+              <textarea
+                id="query"
+                value={formData.query}
+                onChange={(e) => setFormData({ ...formData, query: e.target.value })}
+                placeholder="SELECT column1 as label, column2 as value FROM table_name"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-mono text-sm transition-all duration-200"
+                rows={6}
+                required
+              />
+              <p className="mt-2 text-xs text-gray-600">
+                Write a SQL query that returns data for the chart. For most charts, use 'label' and 'value' columns.
+              </p>
+            </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-            <h4 className="text-sm font-medium text-blue-900 mb-2">Query Examples:</h4>
-            <div className="space-y-2 text-xs text-blue-800 font-mono">
-              <div>
-                <strong>Bar/Line/Area Charts:</strong>
-                <code className="block mt-1 bg-white p-2 rounded">
-                  SELECT category_name as label, COUNT(*) as value FROM products GROUP BY category_name
-                </code>
-              </div>
-              <div>
-                <strong>Pie Chart:</strong>
-                <code className="block mt-1 bg-white p-2 rounded">
-                  SELECT status as label, COUNT(*) as value FROM orders GROUP BY status
-                </code>
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-5">
+              <h4 className="text-sm font-bold text-blue-900 mb-3 flex items-center">
+                <span className="mr-2">💡</span> Query Examples
+              </h4>
+              <div className="space-y-3 text-xs text-blue-900">
+                <div>
+                  <strong className="block mb-1">Bar/Line/Area Charts:</strong>
+                  <code className="block bg-white p-3 rounded-lg shadow-sm border border-blue-100 font-mono">
+                    SELECT category_name as label, COUNT(*) as value FROM products GROUP BY category_name
+                  </code>
+                </div>
+                <div>
+                  <strong className="block mb-1">Pie Chart:</strong>
+                  <code className="block bg-white p-3 rounded-lg shadow-sm border border-blue-100 font-mono">
+                    SELECT status as label, COUNT(*) as value FROM orders GROUP BY status
+                  </code>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Chart Configuration */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium text-gray-900">Chart Configuration</h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="xAxis" className="block text-sm font-medium text-gray-700 mb-1">
-                X-Axis Label
-              </label>
-              <Input
-                id="xAxis"
-                type="text"
-                value={formData.config.xAxis}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    config: { ...formData.config, xAxis: e.target.value },
-                  })
-                }
-                placeholder="Enter X-axis label"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="yAxis" className="block text-sm font-medium text-gray-700 mb-1">
-                Y-Axis Label
-              </label>
-              <Input
-                id="yAxis"
-                type="text"
-                value={formData.config.yAxis}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    config: { ...formData.config, yAxis: e.target.value },
-                  })
-                }
-                placeholder="Enter Y-axis label"
-              />
-            </div>
+        {/* Chart Configuration Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <span className="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center mr-3 text-sm">5</span>
+              Chart Configuration
+            </h3>
+            <p className="text-sm text-gray-600 mt-1 ml-11">Customize your chart appearance and labels</p>
           </div>
+          <div className="p-6 space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label htmlFor="xAxis" className="block text-sm font-semibold text-gray-700 mb-2">
+                  X-Axis Label
+                </label>
+                <Input
+                  id="xAxis"
+                  type="text"
+                  value={formData.config.xAxis}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      config: { ...formData.config, xAxis: e.target.value },
+                    })
+                  }
+                  placeholder="e.g., Categories, Time Period"
+                />
+              </div>
 
-          <div className="flex items-center space-x-4">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={formData.config.legend}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    config: { ...formData.config, legend: e.target.checked },
-                  })
-                }
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <span className="ml-2 text-sm text-gray-700">Show Legend</span>
-            </label>
+              <div>
+                <label htmlFor="yAxis" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Y-Axis Label
+                </label>
+                <Input
+                  id="yAxis"
+                  type="text"
+                  value={formData.config.yAxis}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      config: { ...formData.config, yAxis: e.target.value },
+                    })
+                  }
+                  placeholder="e.g., Count, Revenue, Percentage"
+                />
+              </div>
+            </div>
 
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={formData.config.grid}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    config: { ...formData.config, grid: e.target.checked },
-                  })
-                }
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <span className="ml-2 text-sm text-gray-700">Show Grid</span>
-            </label>
+            <div className="flex items-center space-x-6 pt-2">
+              <label className="flex items-center cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={formData.config.legend}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      config: { ...formData.config, legend: e.target.checked },
+                    })
+                  }
+                  className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded transition-all duration-200"
+                />
+                <span className="ml-3 text-sm font-medium text-gray-700 group-hover:text-gray-900">Show Legend</span>
+              </label>
+
+              <label className="flex items-center cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={formData.config.grid}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      config: { ...formData.config, grid: e.target.checked },
+                    })
+                  }
+                  className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded transition-all duration-200"
+                />
+                <span className="ml-3 text-sm font-medium text-gray-700 group-hover:text-gray-900">Show Grid</span>
+              </label>
+            </div>
           </div>
         </div>
 
         {/* Form Actions */}
-        <div className="flex justify-end space-x-3 pt-6 border-t">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => navigate('/charts')}
-            disabled={isLoading || loadingDataSources}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isLoading || loadingDataSources || dataSources.length === 0}>
-            {isLoading ? 'Creating...' : 'Create Chart'}
-          </Button>
+        <div className="flex justify-between items-center pt-8 border-t-2 border-gray-200">
+          <div className="text-sm text-gray-600">
+            <span className="font-medium">Ready to create?</span> Make sure all required fields are filled
+          </div>
+          <div className="flex space-x-4">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => navigate('/charts')}
+              disabled={isLoading || loadingDataSources}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isLoading || loadingDataSources || dataSources.length === 0}
+              className="px-8"
+            >
+              {isLoading ? (
+                <span className="flex items-center">
+                  <Spinner size="sm" color="white" className="mr-2" />
+                  Creating...
+                </span>
+              ) : (
+                'Create Chart'
+              )}
+            </Button>
+          </div>
         </div>
       </form>
     </div>

@@ -262,3 +262,90 @@ class WorkspaceSettingsResponse(WorkspaceSettingsBase):
 class AcceptInvitationRequest(BaseModel):
     """Accept workspace invitation with token"""
     token: str = Field(..., description="Invitation token from email")
+
+
+# Connection Permission Schemas
+class ConnectionPermissionBase(BaseModel):
+    """Base schema for connection permissions"""
+    permission_level: str = Field(..., pattern="^(owner|editor|viewer)$", description="Permission level for the connection")
+
+
+class ConnectionPermissionCreate(ConnectionPermissionBase):
+    """Create connection permission request"""
+    user_id: int = Field(..., description="User ID to grant permission to")
+
+
+class ConnectionPermissionUpdate(BaseModel):
+    """Update connection permission request"""
+    permission_level: str = Field(..., pattern="^(owner|editor|viewer)$", description="New permission level")
+
+
+class ConnectionPermissionResponse(ConnectionPermissionBase):
+    """Connection permission response"""
+    id: int
+    connection_id: int
+    user_id: int
+    username: Optional[str] = None
+    email: Optional[str] = None
+    granted_by: int
+    granted_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Enhanced User Management Schemas
+class UserListItem(BaseModel):
+    """User item for list view"""
+    id: int
+    username: str
+    email: str
+    role: str
+    is_active: bool
+    created_at: datetime
+    last_login: Optional[datetime] = None
+    workspace_count: int = 0
+
+    class Config:
+        from_attributes = True
+
+
+class UserWorkspaceMembership(BaseModel):
+    """User's workspace membership info"""
+    workspace_id: int
+    workspace_name: str
+    role: str
+    joined_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class UserDetailResponse(UserResponse):
+    """Detailed user information with workspace memberships"""
+    email_verified: bool
+    current_workspace_id: Optional[int] = None
+    workspaces: list[UserWorkspaceMembership] = []
+
+    class Config:
+        from_attributes = True
+
+
+class UserListResponse(BaseModel):
+    """Paginated user list response"""
+    users: list[UserListItem]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+
+class PasswordChangeRequest(BaseModel):
+    """Request to change user password"""
+    current_password: str = Field(..., min_length=6)
+    new_password: str = Field(..., min_length=6)
+
+
+class AdminPasswordResetRequest(BaseModel):
+    """Admin request to reset user password"""
+    new_password: str = Field(..., min_length=6)

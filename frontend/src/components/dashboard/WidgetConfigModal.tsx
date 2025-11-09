@@ -9,8 +9,8 @@ import { ChevronDownIcon, ChevronUpIcon, ChartBarIcon } from '@heroicons/react/2
 interface WidgetConfigModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (chartId: number) => void;
-  currentChartId?: number;
+  onSave: (chartId: string) => void;
+  currentChartId?: string;
 }
 
 export default function WidgetConfigModal({
@@ -20,7 +20,7 @@ export default function WidgetConfigModal({
   currentChartId,
 }: WidgetConfigModalProps) {
   const { charts, isLoading, fetchCharts } = useChartStore();
-  const [selectedChartId, setSelectedChartId] = useState<number | null>(currentChartId || null);
+  const [selectedChartId, setSelectedChartId] = useState<string | null>(currentChartId || null);
   const [showQuickCreate, setShowQuickCreate] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -83,6 +83,7 @@ export default function WidgetConfigModal({
           {showQuickCreate && (
             <div className="mt-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <DataSourceQuickCreate
+                embedded={true}
                 onCreated={handleDataSourceCreated}
                 onCancel={() => setShowQuickCreate(false)}
               />
@@ -135,10 +136,10 @@ export default function WidgetConfigModal({
                       key={chart.id}
                       type="button"
                       onClick={() => setSelectedChartId(chart.id)}
-                      className={`w-full text-left p-3 rounded-md border-2 transition-all ${
+                      className={`w-full text-left p-3 rounded-md border-2 transition-all duration-200 ${
                         selectedChartId === chart.id
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
+                          ? 'border-blue-500 bg-blue-50 scale-[1.02] shadow-md'
+                          : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50 hover:scale-[1.01] hover:shadow-sm'
                       }`}
                     >
                       <div className="flex items-start justify-between">

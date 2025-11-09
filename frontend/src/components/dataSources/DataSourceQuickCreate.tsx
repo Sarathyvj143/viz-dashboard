@@ -11,9 +11,10 @@ import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 interface DataSourceQuickCreateProps {
   onCreated?: (dataSourceId: number) => void;
   onCancel?: () => void;
+  embedded?: boolean; // If true, renders without form wrapper for embedding in other forms
 }
 
-export default function DataSourceQuickCreate({ onCreated, onCancel }: DataSourceQuickCreateProps) {
+export default function DataSourceQuickCreate({ onCreated, onCancel, embedded = false }: DataSourceQuickCreateProps) {
   const { connections, fetchConnections } = useConnectionStore();
   const {
     createDataSource,
@@ -137,10 +138,13 @@ export default function DataSourceQuickCreate({ onCreated, onCancel }: DataSourc
     );
   }
 
+  const FormWrapper = embedded ? 'div' : 'form';
+  const formProps = embedded ? {} : { onSubmit: handleSubmit };
+
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6">
+    <div className="bg-white border border-gray-200 rounded-lg p-6 transition-all duration-300 hover:shadow-md">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Quick Create Data Source</h3>
+        <h3 className="text-lg font-semibold text-gray-900 transition-colors duration-200">Quick Create Data Source</h3>
         <Button
           type="button"
           onClick={handleDiscover}
@@ -148,12 +152,12 @@ export default function DataSourceQuickCreate({ onCreated, onCancel }: DataSourc
           size="sm"
           disabled={isLoading || !selectedConnection}
         >
-          <MagnifyingGlassIcon className="w-4 h-4 inline mr-1" />
+          <MagnifyingGlassIcon className={`w-4 h-4 inline mr-1 transition-transform duration-300 ${isLoading ? 'animate-spin' : 'group-hover:scale-110'}`} />
           Discover
         </Button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <FormWrapper {...formProps} className="space-y-4">
         {/* Connection Selection */}
         <div>
           <label htmlFor="connection" className="block text-sm font-medium text-gray-700 mb-1">
@@ -166,7 +170,7 @@ export default function DataSourceQuickCreate({ onCreated, onCancel }: DataSourc
               const conn = connections.find((c) => c.id === parseInt(e.target.value));
               setSelectedConnection(conn || null);
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 hover:border-blue-400"
             required
           >
             {connections.map((conn) => (
@@ -190,7 +194,7 @@ export default function DataSourceQuickCreate({ onCreated, onCancel }: DataSourc
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 hover:border-blue-400 focus:scale-[1.01]"
             placeholder="e.g., Sales Database"
             required
           />
@@ -210,7 +214,7 @@ export default function DataSourceQuickCreate({ onCreated, onCancel }: DataSourc
             id="source_identifier"
             value={formData.source_identifier}
             onChange={(e) => setFormData({ ...formData, source_identifier: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 hover:border-blue-400 focus:scale-[1.01]"
             placeholder={
               selectedConnection && ['mysql', 'postgresql'].includes(selectedConnection.type)
                 ? 'e.g., visualization_test'
@@ -227,7 +231,11 @@ export default function DataSourceQuickCreate({ onCreated, onCancel }: DataSourc
 
         {/* Form Actions */}
         <div className="flex gap-3 pt-4">
-          <Button type="submit" disabled={isLoading}>
+          <Button
+            type={embedded ? "button" : "submit"}
+            onClick={embedded ? handleSubmit : undefined}
+            disabled={isLoading}
+          >
             <PlusIcon className="w-4 h-4 inline mr-1" />
             {isLoading ? 'Creating...' : 'Create Data Source'}
           </Button>
@@ -237,7 +245,7 @@ export default function DataSourceQuickCreate({ onCreated, onCancel }: DataSourc
             </Button>
           )}
         </div>
-      </form>
+      </FormWrapper>
 
       {/* Discover Modal */}
       <Modal
@@ -260,9 +268,9 @@ export default function DataSourceQuickCreate({ onCreated, onCancel }: DataSourc
                   key={item.identifier}
                   type="button"
                   onClick={() => handleSelectDiscovered(item)}
-                  className="w-full text-left p-3 bg-gray-50 hover:bg-blue-50 rounded-md transition-colors"
+                  className="w-full text-left p-3 bg-gray-50 hover:bg-blue-50 rounded-md transition-all duration-200 hover:shadow-sm hover:scale-[1.02] hover:-translate-y-0.5"
                 >
-                  <div className="font-medium text-gray-900">{item.name}</div>
+                  <div className="font-medium text-gray-900 transition-colors duration-200">{item.name}</div>
                   <div className="text-sm text-gray-600">{item.identifier}</div>
                 </button>
               ))}

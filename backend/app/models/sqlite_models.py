@@ -39,7 +39,7 @@ class Chart(Base):
     description = Column(Text)
     chart_type = Column(String(50), nullable=False)  # bar, line, pie, scatter, area
     config = Column(JSON, nullable=False)  # ChartConfig JSON
-    data_source_id = Column(Integer, ForeignKey('connections.id', ondelete='SET NULL'), nullable=True)
+    data_source_id = Column(Integer, ForeignKey('data_sources.id', ondelete='SET NULL'), nullable=True)
     query = Column(Text)
     workspace_id = Column(Integer, ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False, index=True)
     created_by = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
@@ -48,7 +48,7 @@ class Chart(Base):
 
     # Relationships
     creator = relationship("User", back_populates="charts")
-    data_source = relationship("Connection")
+    data_source = relationship("DataSource")
     csv_data = relationship("CSVData", back_populates="chart", cascade="all, delete-orphan")
     dashboard_charts = relationship("DashboardChart", back_populates="chart", cascade="all, delete-orphan")
 
@@ -110,6 +110,7 @@ class Connection(Base):
     # Relationships
     creator = relationship("User", back_populates="connections")
     data_sources = relationship("DataSource", back_populates="connection", cascade="all, delete-orphan")
+    permissions = relationship("ConnectionPermission", back_populates="connection", cascade="all, delete-orphan")
 
 class DataSource(Base):
     """
@@ -246,3 +247,26 @@ class WorkspaceSettings(Base):
     # Relationships
     workspace = relationship("Workspace", back_populates="settings")
     updater = relationship("User")
+
+class ConnectionPermission(Base):
+    """Connection-level permissions for fine-grained access control"""
+    __tablename__ = "connection_permissions"
+    __table_args__ = (
+        UniqueConstraint('connection_id', 'user_id', name='unique_connection_user'),
+        CheckConstraint("permission_level IN ('owner', 'editor', 'viewer')", name='valid_permission_level'),
+        Index('ix_connection_permissions_connection_id', 'connection_id'),
+        Index('ix_connection_permissions_user_id', 'user_id'),
+        Index('ix_connection_permissions_user_connection', 'user_id', 'connection_id'),
+    )
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    connection_id = Column(Integer, ForeignKey("connections.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    permission_level = Column(String(20), nullable=False)  # owner, editor, viewer
+    granted_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    granted_at = Column(TIMESTAMP, default=datetime.utcnow, nullable=False)
+
+    # Relationships
+    connection = relationship("Connection", back_populates="permissions")
+    user = relationship("User", foreign_keys=[user_id])
+    granter = relationship("User", foreign_keys=[granted_by])

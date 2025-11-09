@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
+import { usePersistedState } from '../../hooks/usePersistedState';
 import {
   HomeIcon,
   ChartBarIcon,
@@ -7,11 +8,14 @@ import {
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
   CircleStackIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from '@heroicons/react/24/outline';
 
 export default function Sidebar() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
+  const [isCollapsed, setIsCollapsed] = usePersistedState('sidebar-collapsed', false);
 
   const handleLogout = async () => {
     await logout();
@@ -31,34 +35,52 @@ export default function Sidebar() {
   );
 
   return (
-    <div className="flex h-full w-64 flex-col bg-gray-900">
+    <div className={`flex h-full flex-col bg-gray-900 transition-all duration-300 ease-in-out ${isCollapsed ? 'w-20' : 'w-64'}`}>
       {/* Logo/Brand */}
-      <div className="flex h-16 shrink-0 items-center px-6 border-b border-gray-800">
-        <div className="flex items-center">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+      <div className="flex h-16 shrink-0 items-center justify-between px-4 border-b border-gray-800">
+        <div className="flex items-center overflow-hidden">
+          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
             <ChartBarIcon className="w-5 h-5 text-white" />
           </div>
-          <span className="ml-3 text-white font-semibold text-lg">Analytics</span>
+          {!isCollapsed && (
+            <span className="ml-3 text-white font-semibold text-lg whitespace-nowrap transition-opacity duration-200">
+              Analytics
+            </span>
+          )}
         </div>
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="p-1.5 rounded-lg hover:bg-gray-800 transition-colors text-gray-400 hover:text-white"
+          title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {isCollapsed ? (
+            <ChevronRightIcon className="w-5 h-5" />
+          ) : (
+            <ChevronLeftIcon className="w-5 h-5" />
+          )}
+        </button>
       </div>
 
       {/* Navigation */}
-      <nav className="flex flex-1 flex-col px-4 py-6">
+      <nav className="flex flex-1 flex-col px-3 py-6">
         <ul role="list" className="flex flex-1 flex-col gap-y-1">
           {filteredNavigation.map((item) => (
             <li key={item.name}>
               <NavLink
                 to={item.href}
                 className={({ isActive }) =>
-                  `group flex gap-x-3 rounded-md p-3 text-sm font-semibold transition-colors ${
+                  `group flex items-center gap-x-3 rounded-lg p-3 text-sm font-semibold transition-all duration-200 ${
                     isActive
-                      ? 'bg-gray-800 text-white'
+                      ? 'bg-gray-800 text-white shadow-md'
                       : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                  }`
+                  } ${isCollapsed ? 'justify-center' : ''}`
                 }
+                title={isCollapsed ? item.name : ''}
               >
-                <item.icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-                {item.name}
+                <item.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
+                {!isCollapsed && (
+                  <span className="transition-opacity duration-200">{item.name}</span>
+                )}
               </NavLink>
             </li>
           ))}
@@ -67,26 +89,45 @@ export default function Sidebar() {
 
       {/* User Section */}
       <div className="border-t border-gray-800 p-4">
-        <div className="flex items-center">
-          <div className="flex-shrink-0">
+        {!isCollapsed ? (
+          <>
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                  <span className="text-white font-semibold text-sm">
+                    {user?.username.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              </div>
+              <div className="ml-3 flex-1 min-w-0">
+                <p className="text-sm font-medium text-white truncate">{user?.username}</p>
+                <p className="text-xs text-gray-400 capitalize">{user?.role}</p>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="mt-3 w-full flex items-center justify-center gap-x-2 rounded-lg bg-gray-800 px-3 py-2.5 text-sm font-semibold text-gray-400 hover:bg-gray-700 hover:text-white transition-all duration-200"
+            >
+              <ArrowRightOnRectangleIcon className="h-5 w-5" />
+              <span>Logout</span>
+            </button>
+          </>
+        ) : (
+          <div className="flex flex-col items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
               <span className="text-white font-semibold text-sm">
                 {user?.username.charAt(0).toUpperCase()}
               </span>
             </div>
+            <button
+              onClick={handleLogout}
+              className="p-2.5 rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white transition-all duration-200"
+              title="Logout"
+            >
+              <ArrowRightOnRectangleIcon className="h-5 w-5" />
+            </button>
           </div>
-          <div className="ml-3 flex-1">
-            <p className="text-sm font-medium text-white">{user?.username}</p>
-            <p className="text-xs text-gray-400 capitalize">{user?.role}</p>
-          </div>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="mt-3 w-full flex items-center gap-x-2 rounded-md bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-400 hover:bg-gray-700 hover:text-white transition-colors"
-        >
-          <ArrowRightOnRectangleIcon className="h-5 w-5" />
-          Logout
-        </button>
+        )}
       </div>
     </div>
   );

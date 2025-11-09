@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.api.routes import auth, dashboards, connections, workspaces, health, data_sources
+from app.api.routes import auth, dashboards, connections, workspaces, health, data_sources, charts
 from app.core.workspace_middleware import WorkspaceIsolationMiddleware
 from app.core.data_isolation import register_isolation_events
 from app.core.invitations import set_secret_key
@@ -45,6 +45,7 @@ app.include_router(workspaces.router, prefix="/api")
 app.include_router(dashboards.router, prefix="/api")
 app.include_router(connections.router, prefix="/api")
 app.include_router(data_sources.router, prefix="/api")
+app.include_router(charts.router, prefix="/api")
 
 
 if __name__ == "__main__":
