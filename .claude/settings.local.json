@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git config:*)",
+      "Bash(git credential-manager:*)",
+      "Bash(claudekit:*)",
+      "SlashCommand(/spec:execute:*)",
+      "mcp__ide__getDiagnostics",
+      "WebSearch"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
