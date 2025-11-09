@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import { apiClient } from './api/client';
+import { ThemeProvider } from './contexts/ThemeContext';
 import MainLayout from './components/layout/MainLayout';
 import ToastContainer from './components/common/ToastContainer';
 import Login from './pages/Login';
@@ -131,8 +132,10 @@ function AppContent() {
 function App() {
   return (
     <Router>
-      <AppContent />
-      <ToastContainer />
+      <ThemeProvider>
+        <AppContent />
+        <ToastContainer />
+      </ThemeProvider>
     </Router>
   );
 }

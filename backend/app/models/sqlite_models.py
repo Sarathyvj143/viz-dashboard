@@ -16,6 +16,8 @@ class User(Base):
     role = Column(String(20), nullable=False, default='viewer')  # admin, editor, viewer (deprecated - use workspace roles)
     current_workspace_id = Column(Integer, ForeignKey("workspaces.id", ondelete="SET NULL"))
     email_verified = Column(Boolean, default=False)
+    theme_preference = Column(String(20), default='light')  # light, dark, auto, ocean, forest, sunset, custom
+    custom_theme_colors = Column(Text, nullable=True)  # JSON string of custom ThemeColors
     created_at = Column(TIMESTAMP, default=datetime.utcnow)
     updated_at = Column(TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_login = Column(TIMESTAMP, nullable=True)

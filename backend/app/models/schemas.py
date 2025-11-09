@@ -349,3 +349,9 @@ class PasswordChangeRequest(BaseModel):
 class AdminPasswordResetRequest(BaseModel):
     """Admin request to reset user password"""
     new_password: str = Field(..., min_length=6)
+
+
+class ThemePreferenceUpdate(BaseModel):
+    """Request to update user theme preference"""
+    theme: str = Field(..., pattern="^(light|dark|auto|ocean|forest|sunset|custom)$", description="Theme preference")
+    custom_colors: Optional[dict] = Field(None, description="Custom theme colors (required when theme is 'custom')")

@@ -6,6 +6,7 @@ import {
   PencilIcon,
   TrashIcon,
   BeakerIcon,
+  ShieldCheckIcon,
 } from '@heroicons/react/24/outline';
 
 interface ConnectionsTableProps {
@@ -15,6 +16,7 @@ interface ConnectionsTableProps {
   onTest: (id: number) => void;
   onEdit: (connection: Connection) => void;
   onDelete: (id: number) => void;
+  onManagePermissions?: (connection: Connection) => void;
 }
 
 export default function ConnectionsTable({
@@ -24,6 +26,7 @@ export default function ConnectionsTable({
   onTest,
   onEdit,
   onDelete,
+  onManagePermissions,
 }: ConnectionsTableProps) {
   return (
     <div className="bg-white shadow-md rounded-lg overflow-hidden">
@@ -123,6 +126,16 @@ export default function ConnectionsTable({
                   >
                     <BeakerIcon className="w-5 h-5" />
                   </button>
+                  {onManagePermissions && (
+                    <button
+                      onClick={() => onManagePermissions(connection)}
+                      className="inline-flex items-center p-2 text-purple-600 hover:bg-purple-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                      title="Manage permissions"
+                      aria-label={`Manage permissions for ${connection.name}`}
+                    >
+                      <ShieldCheckIcon className="w-5 h-5" />
+                    </button>
+                  )}
                   <button
                     onClick={() => onEdit(connection)}
                     className="inline-flex items-center p-2 text-gray-600 hover:bg-gray-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"

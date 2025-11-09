@@ -2,8 +2,12 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChartStore } from '../../store/chartStore';
 import { useToastStore } from '../../store/toastStore';
+import { useTheme } from '../../contexts/ThemeContext';
+import { getDefaultChartColors } from '../../constants/themes';
 import { dataSourcesApi } from '../../api/dataSources';
+import { connectionsApi } from '../../api/connections';
 import { DataSource } from '../../types/dataSource';
+import { Connection } from '../../types/connection';
 import { ChartType } from '../../types/chart';
 import Button from '../common/Button';
 import Input from '../common/Input';
@@ -17,17 +21,34 @@ import {
   ChevronUpIcon,
   MagnifyingGlassIcon,
   ServerIcon,
-  FolderIcon
+  FolderIcon,
+  TableCellsIcon,
+  CodeBracketIcon
 } from '@heroicons/react/24/outline';
 
 export default function ChartBuilder() {
   const navigate = useNavigate();
   const { createChart, isLoading } = useChartStore();
   const { showToast } = useToastStore();
+  const { currentTheme, customColors } = useTheme();
   const [loadingDataSources, setLoadingDataSources] = useState(true);
   const [dataSources, setDataSources] = useState<DataSource[]>([]);
+  const [connections, setConnections] = useState<Connection[]>([]);
   const [showQuickCreate, setShowQuickCreate] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Data source mode: 'datasource' | 'connection'
+  const [dataSourceMode, setDataSourceMode] = useState<'datasource' | 'connection'>('datasource');
+
+  // Query mode: 'table' | 'custom'
+  const [queryMode, setQueryMode] = useState<'table' | 'custom'>('table');
+
+  // Connection-related state
+  const [selectedConnectionId, setSelectedConnectionId] = useState<number>(0);
+  const [tables, setTables] = useState<Array<{ name: string; type: string }>>([]);
+  const [selectedTable, setSelectedTable] = useState<string>('');
+  const [loadingTables, setLoadingTables] = useState(false);
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -37,7 +58,7 @@ export default function ChartBuilder() {
     config: {
       xAxis: '',
       yAxis: '',
-      colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+      colors: getDefaultChartColors(currentTheme, customColors),
       legend: true,
       grid: true,
     },
@@ -45,7 +66,28 @@ export default function ChartBuilder() {
 
   useEffect(() => {
     loadDataSources();
+    loadConnections();
   }, []);
+
+  useEffect(() => {
+    if (selectedConnectionId && dataSourceMode === 'connection') {
+      loadTables();
+    } else {
+      setTables([]);
+      setSelectedTable('');
+    }
+  }, [selectedConnectionId, dataSourceMode]);
+
+  // Update chart colors when theme changes
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      config: {
+        ...prev.config,
+        colors: getDefaultChartColors(currentTheme, customColors),
+      },
+    }));
+  }, [currentTheme, customColors]);
 
   // Use useMemo for efficient filtering
   const filteredDataSources = useMemo(() => {
@@ -75,6 +117,36 @@ export default function ChartBuilder() {
     }
   };
 
+  const loadConnections = async () => {
+    try {
+      const conns = await connectionsApi.getAll();
+      setConnections(conns);
+      if (conns.length > 0 && !selectedConnectionId) {
+        setSelectedConnectionId(conns[0].id);
+      }
+    } catch (error) {
+      showToast('Failed to load connections.', 'error');
+    }
+  };
+
+  const loadTables = async () => {
+    if (!selectedConnectionId) return;
+
+    setLoadingTables(true);
+    try {
+      const fetchedTables = await connectionsApi.getTables(selectedConnectionId);
+      setTables(fetchedTables);
+      if (fetchedTables.length > 0) {
+        setSelectedTable(fetchedTables[0].name);
+      }
+    } catch (error) {
+      showToast('Failed to load tables from connection.', 'error');
+      setTables([]);
+    } finally {
+      setLoadingTables(false);
+    }
+  };
+
   const handleDataSourceCreated = async (newDataSourceId: number) => {
     // Reload data sources to include the newly created one
     await loadDataSources();
@@ -83,6 +155,27 @@ export default function ChartBuilder() {
     // Close the quick create form
     setShowQuickCreate(false);
     showToast('Data source created and selected', 'success');
+  };
+
+  const handleTableSelect = (tableName: string) => {
+    setSelectedTable(tableName);
+    if (queryMode === 'table') {
+      // Auto-generate query for the selected table
+      const generatedQuery = `SELECT * FROM ${tableName} LIMIT 100`;
+      setFormData((prev) => ({ ...prev, query: generatedQuery }));
+    }
+  };
+
+  const handleDataSourceModeChange = (mode: 'datasource' | 'connection') => {
+    setDataSourceMode(mode);
+    // Reset related state
+    if (mode === 'connection') {
+      setFormData((prev) => ({ ...prev, data_source_id: 0 }));
+    } else {
+      setSelectedConnectionId(0);
+      setSelectedTable('');
+      setTables([]);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -185,36 +278,151 @@ export default function ChartBuilder() {
           </div>
         </div>
 
-        {/* Data Source Selection Section */}
+        {/* Data Source Mode Selection */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <span className="w-8 h-8 rounded-lg bg-green-500 text-white flex items-center justify-center mr-3 text-sm">3</span>
-                  Data Source
-                </h3>
-                <p className="text-sm text-gray-600 mt-1 ml-11">Select or create a data source connection</p>
-              </div>
+          <div className="bg-gradient-to-r from-teal-50 to-cyan-50 px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <span className="w-8 h-8 rounded-lg bg-teal-500 text-white flex items-center justify-center mr-3 text-sm">3</span>
+              Data Source Mode
+            </h3>
+            <p className="text-sm text-gray-600 mt-1 ml-11">Choose how you want to provide data for the chart</p>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-2 gap-4">
               <button
                 type="button"
-                onClick={() => setShowQuickCreate(!showQuickCreate)}
-                className="px-4 py-2 text-sm text-green-700 bg-white hover:bg-green-50 border border-green-300 rounded-lg font-medium flex items-center transition-all duration-200 shadow-sm hover:shadow"
+                onClick={() => handleDataSourceModeChange('connection')}
+                className={`p-6 border-2 rounded-xl transition-all duration-200 ${
+                  dataSourceMode === 'connection'
+                    ? 'border-teal-500 bg-teal-50 shadow-md'
+                    : 'border-gray-200 hover:border-teal-300 hover:shadow-sm'
+                }`}
               >
-                {showQuickCreate ? (
-                  <>
-                    <ChevronUpIcon className="w-4 h-4 mr-1.5" />
-                    Hide Quick Create
-                  </>
-                ) : (
-                  <>
-                    <PlusIcon className="w-4 h-4 mr-1.5" />
-                    Create New
-                  </>
-                )}
+                <ServerIcon className="w-8 h-8 mx-auto mb-3 text-teal-600" />
+                <div className="text-sm font-semibold text-gray-900 mb-2">Direct Connection</div>
+                <div className="text-xs text-gray-600">Select a connection and table directly</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDataSourceModeChange('datasource')}
+                className={`p-6 border-2 rounded-xl transition-all duration-200 ${
+                  dataSourceMode === 'datasource'
+                    ? 'border-teal-500 bg-teal-50 shadow-md'
+                    : 'border-gray-200 hover:border-teal-300 hover:shadow-sm'
+                }`}
+              >
+                <FolderIcon className="w-8 h-8 mx-auto mb-3 text-teal-600" />
+                <div className="text-sm font-semibold text-gray-900 mb-2">Data Source</div>
+                <div className="text-xs text-gray-600">Use an existing data source configuration</div>
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Connection/Table Selection Section - Only shown when connection mode is selected */}
+        {dataSourceMode === 'connection' && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                <span className="w-8 h-8 rounded-lg bg-green-500 text-white flex items-center justify-center mr-3 text-sm">4</span>
+                Connection & Table
+              </h3>
+              <p className="text-sm text-gray-600 mt-1 ml-11">Select a database connection and table</p>
+            </div>
+            <div className="p-6 space-y-5">
+              {/* Connection Selection */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  Select Connection *
+                </label>
+                {connections.length === 0 ? (
+                  <div className="text-sm text-gray-700 p-5 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+                    <p className="font-semibold mb-1">No database connections available</p>
+                    <p className="text-gray-600">Create a database connection first from the Connections page.</p>
+                  </div>
+                ) : (
+                  <select
+                    value={selectedConnectionId}
+                    onChange={(e) => setSelectedConnectionId(parseInt(e.target.value))}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    required
+                  >
+                    {connections.map((conn) => (
+                      <option key={conn.id} value={conn.id}>
+                        {conn.name} ({conn.type})
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              {/* Table Selection */}
+              {selectedConnectionId > 0 && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    Select Table *
+                  </label>
+                  {loadingTables ? (
+                    <div className="text-sm text-gray-600 p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center">
+                      <Spinner size="md" color="gray" className="mr-3" />
+                      Loading tables...
+                    </div>
+                  ) : tables.length === 0 ? (
+                    <div className="text-sm text-gray-700 p-5 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+                      <p className="font-semibold mb-1">No tables found</p>
+                      <p className="text-gray-600">The selected connection has no accessible tables.</p>
+                    </div>
+                  ) : (
+                    <select
+                      value={selectedTable}
+                      onChange={(e) => handleTableSelect(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      required
+                    >
+                      {tables.map((table) => (
+                        <option key={table.name} value={table.name}>
+                          {table.name} ({table.type})
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Data Source Selection Section - Only shown when datasource mode is selected */}
+        {dataSourceMode === 'datasource' && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <span className="w-8 h-8 rounded-lg bg-green-500 text-white flex items-center justify-center mr-3 text-sm">4</span>
+                    Data Source
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1 ml-11">Select or create a data source connection</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowQuickCreate(!showQuickCreate)}
+                  className="px-4 py-2 text-sm text-green-700 bg-white hover:bg-green-50 border border-green-300 rounded-lg font-medium flex items-center transition-all duration-200 shadow-sm hover:shadow"
+                >
+                  {showQuickCreate ? (
+                    <>
+                      <ChevronUpIcon className="w-4 h-4 mr-1.5" />
+                      Hide Quick Create
+                    </>
+                  ) : (
+                    <>
+                      <PlusIcon className="w-4 h-4 mr-1.5" />
+                      Create New
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
 
           <div className="p-6 space-y-5">
             {/* Quick Create Section (Collapsible) */}
@@ -336,17 +544,51 @@ export default function ChartBuilder() {
             </div>
           </div>
         </div>
+        )}
 
-        {/* SQL Query Section */}
+        {/* Query Configuration */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-gradient-to-r from-orange-50 to-amber-50 px-6 py-4 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <span className="w-8 h-8 rounded-lg bg-orange-500 text-white flex items-center justify-center mr-3 text-sm">4</span>
-              SQL Query
+              <span className="w-8 h-8 rounded-lg bg-orange-500 text-white flex items-center justify-center mr-3 text-sm">5</span>
+              Query Configuration
             </h3>
-            <p className="text-sm text-gray-600 mt-1 ml-11">Define the query to fetch your chart data</p>
+            <p className="text-sm text-gray-600 mt-1 ml-11">Choose how to build your data query</p>
           </div>
           <div className="p-6 space-y-5">
+            {/* Query Mode Toggle - Only show for connection mode */}
+            {dataSourceMode === 'connection' && (
+              <div className="flex items-center gap-4 pb-4 border-b border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setQueryMode('table')}
+                  className={`flex-1 p-4 border-2 rounded-lg transition-all duration-200 ${
+                    queryMode === 'table'
+                      ? 'border-orange-500 bg-orange-50'
+                      : 'border-gray-200 hover:border-orange-300'
+                  }`}
+                >
+                  <TableCellsIcon className="w-6 h-6 mx-auto mb-2 text-orange-600" />
+                  <div className="text-sm font-semibold text-gray-900">Table Mode</div>
+                  <div className="text-xs text-gray-600 mt-1">Auto-generate query from table</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQueryMode('custom')}
+                  className={`flex-1 p-4 border-2 rounded-lg transition-all duration-200 ${
+                    queryMode === 'custom'
+                      ? 'border-orange-500 bg-orange-50'
+                      : 'border-gray-200 hover:border-orange-300'
+                  }`}
+                >
+                  <CodeBracketIcon className="w-6 h-6 mx-auto mb-2 text-orange-600" />
+                  <div className="text-sm font-semibold text-gray-900">Custom Query</div>
+                  <div className="text-xs text-gray-600 mt-1">Write your own SQL query</div>
+                </button>
+              </div>
+            )}
+
+            {/* Query Text Area */}
             <div>
               <label htmlFor="query" className="block text-sm font-semibold text-gray-700 mb-2">
                 SQL Query *
@@ -359,9 +601,12 @@ export default function ChartBuilder() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-mono text-sm transition-all duration-200"
                 rows={6}
                 required
+                readOnly={dataSourceMode === 'connection' && queryMode === 'table'}
               />
               <p className="mt-2 text-xs text-gray-600">
-                Write a SQL query that returns data for the chart. For most charts, use 'label' and 'value' columns.
+                {dataSourceMode === 'connection' && queryMode === 'table'
+                  ? 'Query is auto-generated from the selected table. Switch to Custom Query mode to edit manually.'
+                  : 'Write a SQL query that returns data for the chart. For most charts, use \'label\' and \'value\' columns.'}
               </p>
             </div>
 
@@ -391,7 +636,7 @@ export default function ChartBuilder() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-4 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <span className="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center mr-3 text-sm">5</span>
+              <span className="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center mr-3 text-sm">6</span>
               Chart Configuration
             </h3>
             <p className="text-sm text-gray-600 mt-1 ml-11">Customize your chart appearance and labels</p>

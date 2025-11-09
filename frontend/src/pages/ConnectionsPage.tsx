@@ -7,6 +7,7 @@ import Modal from '../components/common/Modal';
 import ConnectionForm from '../components/admin/ConnectionForm';
 import ConnectionsTable from '../components/connections/ConnectionsTable';
 import ConnectionsGrid from '../components/connections/ConnectionsGrid';
+import ConnectionPermissions from '../components/admin/ConnectionPermissions';
 import { useToastStore } from '../store/toastStore';
 import { ViewColumnsIcon, Squares2X2Icon } from '@heroicons/react/24/outline';
 
@@ -27,7 +28,9 @@ export default function ConnectionsPage() {
   const { showToast } = useToastStore();
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
   const [editingConnection, setEditingConnection] = useState<Connection | null>(null);
+  const [selectedConnectionForPermissions, setSelectedConnectionForPermissions] = useState<Connection | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [testingId, setTestingId] = useState<number | null>(null);
 
@@ -88,6 +91,11 @@ export default function ConnectionsPage() {
     setIsModalOpen(false);
     setEditingConnection(null);
     fetchConnections();
+  };
+
+  const handleManagePermissions = (connection: Connection) => {
+    setSelectedConnectionForPermissions(connection);
+    setIsPermissionsModalOpen(true);
   };
 
   return (
@@ -174,6 +182,7 @@ export default function ConnectionsPage() {
                 onTest={handleTest}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onManagePermissions={handleManagePermissions}
               />
             ) : (
               <ConnectionsGrid
@@ -205,6 +214,23 @@ export default function ConnectionsPage() {
               setEditingConnection(null);
             }}
           />
+        </Modal>
+
+        {/* Permissions Management Modal */}
+        <Modal
+          isOpen={isPermissionsModalOpen}
+          onClose={() => {
+            setIsPermissionsModalOpen(false);
+            setSelectedConnectionForPermissions(null);
+          }}
+          title="Manage Connection Permissions"
+        >
+          {selectedConnectionForPermissions && (
+            <ConnectionPermissions
+              connectionId={selectedConnectionForPermissions.id}
+              connectionName={selectedConnectionForPermissions.name}
+            />
+          )}
         </Modal>
       </div>
     </div>

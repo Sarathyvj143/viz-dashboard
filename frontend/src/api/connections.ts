@@ -48,4 +48,24 @@ export const connectionsApi = {
     );
     return response.data;
   },
+
+  getTables: async (id: number) => {
+    const response = await apiClient.get<{ tables: Array<{ name: string; type: string }> }>(
+      `/connections/${id}/tables`
+    );
+    return response.data.tables;
+  },
+
+  getTableColumns: async (id: number, tableName: string) => {
+    const response = await apiClient.get<{
+      columns: Array<{
+        name: string;
+        type: string;
+        nullable: boolean;
+        key?: string;
+        default?: string | null;
+      }>;
+    }>(`/connections/${id}/tables/${tableName}/columns`);
+    return response.data.columns;
+  },
 };

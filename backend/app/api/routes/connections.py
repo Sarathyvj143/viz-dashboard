@@ -6,13 +6,24 @@ from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime
 
-from app.models.schemas import ConnectionCreate, ConnectionUpdate, ConnectionResponse, ConnectionTestResult
+from app.models.schemas import (
+    ConnectionCreate, ConnectionUpdate, ConnectionResponse, ConnectionTestResult,
+    ConnectionPermissionCreate, ConnectionPermissionUpdate, ConnectionPermissionResponse
+)
 from app.models.sqlite_models import Connection, User
 from app.api.dependencies import get_db, get_current_user
 from app.core.encryption import encryption
 from app.core.permissions import is_workspace_editor_or_above
 from app.core.workspace_middleware import WorkspaceContextInjector
 from app.services.connection_tester import connection_tester
+from app.services.connection_inspector import connection_inspector
+from app.core.connection_permissions import (
+    grant_connection_permission,
+    revoke_connection_permission,
+    get_connection_permissions,
+    can_manage_connection_permissions,
+    ConnectionPermissionChecker
+)
 
 router = APIRouter(prefix="/connections", tags=["Connections"])
 
@@ -334,3 +345,370 @@ async def test_connection(
     config = encryption.decrypt_connection_config(connection.config)
     result = connection_tester.test_connection(connection.type, config)
     return result
+
+
+# ==================== Connection Permissions Endpoints ====================
+
+@router.get("/{connection_id}/permissions", response_model=List[ConnectionPermissionResponse])
+async def list_connection_permissions(
+    connection_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    List all permissions for a specific connection.
+
+    Shows who has access to this connection and their permission levels.
+    Only connection owner, workspace admins, or the connection creator can view permissions.
+    """
+    workspace_id = WorkspaceContextInjector.get_workspace_id(request, current_user)
+
+    # Verify connection exists and is in the workspace
+    connection = db.query(Connection).filter(
+        Connection.id == connection_id,
+        Connection.workspace_id == workspace_id
+    ).first()
+
+    if not connection:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Connection not found"
+        )
+
+    # Check if user can manage permissions for this connection
+    if not can_manage_connection_permissions(db, current_user.id, connection_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to view connection permissions"
+        )
+
+    # Get all permissions
+    permissions = get_connection_permissions(db, connection_id)
+
+    return permissions
+
+
+@router.post("/{connection_id}/permissions", response_model=ConnectionPermissionResponse, status_code=status.HTTP_201_CREATED)
+async def grant_permission(
+    connection_id: int,
+    permission_data: ConnectionPermissionCreate,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Grant permission to a user for a specific connection.
+
+    Allows fine-grained access control at the connection level.
+    Permission levels: owner, editor, viewer
+    - owner: Can manage permissions, edit, and view
+    - editor: Can edit and view
+    - viewer: Can only view
+
+    Only connection owner, workspace admins, or the connection creator can grant permissions.
+    """
+    workspace_id = WorkspaceContextInjector.get_workspace_id(request, current_user)
+
+    # Verify connection exists and is in the workspace
+    connection = db.query(Connection).filter(
+        Connection.id == connection_id,
+        Connection.workspace_id == workspace_id
+    ).first()
+
+    if not connection:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Connection not found"
+        )
+
+    # Check if user can manage permissions for this connection
+    if not can_manage_connection_permissions(db, current_user.id, connection_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to grant connection permissions"
+        )
+
+    # Verify target user exists and is a workspace member
+    from app.models.sqlite_models import WorkspaceMember
+    target_user = db.query(User).filter(User.id == permission_data.user_id).first()
+    if not target_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Check if target user is a member of this workspace
+    membership = db.query(WorkspaceMember).filter(
+        WorkspaceMember.workspace_id == workspace_id,
+        WorkspaceMember.user_id == permission_data.user_id
+    ).first()
+
+    if not membership:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User is not a member of this workspace"
+        )
+
+    # Grant permission
+    try:
+        permission = grant_connection_permission(
+            db=db,
+            connection_id=connection_id,
+            user_id=permission_data.user_id,
+            permission_level=permission_data.permission_level,
+            granted_by=current_user.id
+        )
+        return permission
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+
+@router.patch("/{connection_id}/permissions/{user_id}", response_model=ConnectionPermissionResponse)
+async def update_permission(
+    connection_id: int,
+    user_id: int,
+    permission_data: ConnectionPermissionUpdate,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Update permission level for a user on a specific connection.
+
+    Only connection owner, workspace admins, or the connection creator can update permissions.
+    """
+    workspace_id = WorkspaceContextInjector.get_workspace_id(request, current_user)
+
+    # Verify connection exists and is in the workspace
+    connection = db.query(Connection).filter(
+        Connection.id == connection_id,
+        Connection.workspace_id == workspace_id
+    ).first()
+
+    if not connection:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Connection not found"
+        )
+
+    # Check if user can manage permissions for this connection
+    if not can_manage_connection_permissions(db, current_user.id, connection_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to update connection permissions"
+        )
+
+    # Get existing permission
+    from app.models.sqlite_models import ConnectionPermission
+    permission = db.query(ConnectionPermission).filter(
+        ConnectionPermission.connection_id == connection_id,
+        ConnectionPermission.user_id == user_id
+    ).first()
+
+    if not permission:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Permission not found"
+        )
+
+    # Update permission level
+    if permission_data.permission_level:
+        if permission_data.permission_level not in ['owner', 'editor', 'viewer']:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid permission level. Must be owner, editor, or viewer"
+            )
+        permission.permission_level = permission_data.permission_level
+
+    db.commit()
+    db.refresh(permission)
+
+    return permission
+
+
+@router.delete("/{connection_id}/permissions/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def revoke_permission(
+    connection_id: int,
+    user_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Revoke permission from a user for a specific connection.
+
+    Only connection owner, workspace admins, or the connection creator can revoke permissions.
+    """
+    workspace_id = WorkspaceContextInjector.get_workspace_id(request, current_user)
+
+    # Verify connection exists and is in the workspace
+    connection = db.query(Connection).filter(
+        Connection.id == connection_id,
+        Connection.workspace_id == workspace_id
+    ).first()
+
+    if not connection:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Connection not found"
+        )
+
+    # Check if user can manage permissions for this connection
+    if not can_manage_connection_permissions(db, current_user.id, connection_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to revoke connection permissions"
+        )
+
+    # Revoke permission
+    try:
+        success = revoke_connection_permission(db, connection_id, user_id)
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Permission not found"
+            )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+    return None
+
+
+@router.get("/user/accessible", response_model=List[ConnectionResponse])
+async def list_accessible_connections(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    List all connections the current user can access.
+
+    Includes:
+    - Connections in workspaces where user is admin
+    - Connections created by the user
+    - Connections with explicit permissions granted to the user
+    """
+    workspace_id = WorkspaceContextInjector.get_workspace_id(request, current_user)
+
+    from app.core.connection_permissions import get_user_accessible_connections
+
+    connections = get_user_accessible_connections(db, current_user.id, workspace_id)
+
+    # Build response with decrypted configs
+    result = []
+    for conn in connections:
+        decrypted_config = encryption.decrypt_connection_config(conn.config) if isinstance(conn.config, str) else conn.config
+        result.append({
+            "id": conn.id,
+            "name": conn.name,
+            "type": conn.type,
+            "config": decrypted_config,
+            "is_active": conn.is_active,
+            "created_at": conn.created_at,
+            "created_by": conn.created_by
+        })
+
+    return result
+
+@router.get("/{connection_id}/tables")
+async def get_connection_tables(
+    connection_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get list of tables from a database connection
+
+    Works for MySQL and PostgreSQL connections.
+    All workspace members can view tables from connections they have access to.
+    """
+    # Get workspace_id from request context
+    workspace_id = WorkspaceContextInjector.get_workspace_id(request, current_user)
+
+    # Filter by workspace_id for security
+    connection = db.query(Connection).filter(
+        Connection.id == connection_id,
+        Connection.workspace_id == workspace_id
+    ).first()
+
+    if not connection:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Connection not found"
+        )
+
+    # Check if connection type supports table inspection
+    if connection.type not in ["mysql", "postgresql"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Table inspection not supported for connection type: {connection.type}"
+        )
+
+    # Decrypt config
+    config = encryption.decrypt_connection_config(connection.config) if isinstance(connection.config, str) else connection.config
+
+    try:
+        tables = connection_inspector.get_tables(connection.type, config)
+        return {"tables": tables}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch tables: {str(e)}"
+        )
+
+
+@router.get("/{connection_id}/tables/{table_name}/columns")
+async def get_table_columns(
+    connection_id: int,
+    table_name: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get columns from a specific table in a database connection
+
+    Works for MySQL and PostgreSQL connections.
+    All workspace members can view columns from tables they have access to.
+    """
+    # Get workspace_id from request context
+    workspace_id = WorkspaceContextInjector.get_workspace_id(request, current_user)
+
+    # Filter by workspace_id for security
+    connection = db.query(Connection).filter(
+        Connection.id == connection_id,
+        Connection.workspace_id == workspace_id
+    ).first()
+
+    if not connection:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Connection not found"
+        )
+
+    # Check if connection type supports column inspection
+    if connection.type not in ["mysql", "postgresql"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Column inspection not supported for connection type: {connection.type}"
+        )
+
+    # Decrypt config
+    config = encryption.decrypt_connection_config(connection.config) if isinstance(connection.config, str) else connection.config
+
+    try:
+        columns = connection_inspector.get_table_columns(connection.type, config, table_name)
+        return {"columns": columns}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch columns: {str(e)}"
+        )

@@ -10,7 +10,7 @@ from datetime import datetime
 from app.models.schemas import (
     UserCreate, UserUpdate, UserResponse, UserListResponse,
     UserListItem, UserDetailResponse, UserWorkspaceMembership,
-    PasswordChangeRequest, AdminPasswordResetRequest
+    PasswordChangeRequest, AdminPasswordResetRequest, ThemePreferenceUpdate
 )
 from app.models.sqlite_models import User, WorkspaceMember, Workspace
 from app.api.dependencies import get_db, get_current_user
@@ -446,3 +446,77 @@ async def admin_reset_password(
     db.commit()
 
     return {"message": "Password reset successfully"}
+
+
+@router.get("/me/theme", response_model=dict)
+async def get_theme_preference(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get current user's theme preference.
+
+    Returns the theme preference and custom colors for the authenticated user.
+    """
+    import json
+    custom_colors = None
+    if current_user.custom_theme_colors:
+        try:
+            custom_colors = json.loads(current_user.custom_theme_colors)
+        except:
+            custom_colors = None
+
+    return {
+        "theme": current_user.theme_preference or "light",
+        "customColors": custom_colors
+    }
+
+
+@router.put("/me/theme", response_model=dict)
+async def update_theme_preference(
+    theme_data: ThemePreferenceUpdate,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Update current user's theme preference.
+
+    Allows users to set their preferred theme (light, dark, auto, ocean, forest, sunset, custom).
+    For custom theme, provide customColors object.
+    """
+    import json
+
+    # Validate theme value
+    valid_themes = ['light', 'dark', 'auto', 'ocean', 'forest', 'sunset', 'custom']
+    if theme_data.theme not in valid_themes:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid theme. Must be one of: {', '.join(valid_themes)}"
+        )
+
+    # If custom theme, validate that custom_colors is provided
+    if theme_data.theme == 'custom':
+        if not theme_data.custom_colors:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="custom_colors is required when theme is 'custom'"
+            )
+        # Store custom colors as JSON
+        current_user.custom_theme_colors = json.dumps(theme_data.custom_colors)
+    else:
+        # Clear custom colors for non-custom themes
+        current_user.custom_theme_colors = None
+
+    # Update user theme preference
+    current_user.theme_preference = theme_data.theme
+    current_user.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(current_user)
+
+    return {
+        "message": "Theme preference updated successfully",
+        "theme": current_user.theme_preference,
+        "customColors": theme_data.custom_colors if theme_data.theme == 'custom' else None
+    }

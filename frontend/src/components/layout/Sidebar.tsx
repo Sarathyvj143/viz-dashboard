@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { usePersistedState } from '../../hooks/usePersistedState';
+import ThemeMenu from '../theme/ThemeMenu';
 import {
   HomeIcon,
   ChartBarIcon,
@@ -88,9 +89,10 @@ export default function Sidebar() {
       </nav>
 
       {/* User Section */}
-      <div className="border-t border-gray-800 p-4">
+      <div className="border-t border-gray-800 p-4 space-y-3">
         {!isCollapsed ? (
           <>
+            {/* User Profile */}
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
@@ -104,9 +106,14 @@ export default function Sidebar() {
                 <p className="text-xs text-gray-400 capitalize">{user?.role}</p>
               </div>
             </div>
+
+            {/* Theme Selector */}
+            <ThemeMenu />
+
+            {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="mt-3 w-full flex items-center justify-center gap-x-2 rounded-lg bg-gray-800 px-3 py-2.5 text-sm font-semibold text-gray-400 hover:bg-gray-700 hover:text-white transition-all duration-200"
+              className="w-full flex items-center justify-center gap-x-2 rounded-lg bg-gray-800 px-3 py-2.5 text-sm font-semibold text-gray-400 hover:bg-gray-700 hover:text-white transition-all duration-200"
             >
               <ArrowRightOnRectangleIcon className="h-5 w-5" />
               <span>Logout</span>
@@ -114,11 +121,17 @@ export default function Sidebar() {
           </>
         ) : (
           <div className="flex flex-col items-center gap-3">
+            {/* User Avatar */}
             <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
               <span className="text-white font-semibold text-sm">
                 {user?.username.charAt(0).toUpperCase()}
               </span>
             </div>
+
+            {/* Theme Selector */}
+            <ThemeMenu isCollapsed />
+
+            {/* Logout Button */}
             <button
               onClick={handleLogout}
               className="p-2.5 rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white transition-all duration-200"

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.api.routes import auth, dashboards, connections, workspaces, health, data_sources, charts
+from app.api.routes import auth, dashboards, connections, workspaces, health, data_sources, charts, users
 from app.core.workspace_middleware import WorkspaceIsolationMiddleware
 from app.core.data_isolation import register_isolation_events
 from app.core.invitations import set_secret_key
@@ -41,6 +41,7 @@ set_secret_key(settings.SECRET_KEY)
 # Register routers
 app.include_router(health.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
+app.include_router(users.router, prefix="/api")
 app.include_router(workspaces.router, prefix="/api")
 app.include_router(dashboards.router, prefix="/api")
 app.include_router(connections.router, prefix="/api")
@@ -51,3 +52,4 @@ app.include_router(charts.router, prefix="/api")
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
