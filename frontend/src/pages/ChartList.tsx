@@ -31,7 +31,7 @@ export default function ChartList() {
             </Button>
           }
         />
-        <div className="p-6 text-center" style={{ color: theme.colors.textSecondary }}>
+        <div className="p-3 sm:p-4 md:p-6 text-center" style={{ color: theme.colors.textSecondary }}>
           Loading charts...
         </div>
       </div>
@@ -49,7 +49,7 @@ export default function ChartList() {
           </Button>
         }
       />
-      <div className="p-6">
+      <div className="p-3 sm:p-4 md:p-6 max-w-full lg:max-w-7xl xl:max-w-[1600px] mx-auto">
         {charts.length === 0 ? (
           <EmptyState
             icon={ChartBarIcon}
@@ -61,11 +61,11 @@ export default function ChartList() {
             }}
           />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {charts.map((chart) => (
               <div
                 key={chart.id}
-                className="p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                className="p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
                 style={{
                   backgroundColor: theme.colors.bgPrimary,
                   borderWidth: '1px',
@@ -74,13 +74,13 @@ export default function ChartList() {
                 }}
                 onClick={() => navigate(`/charts/${chart.id}`)}
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold mb-1" style={styles.heading.primary}>
+                <div className="flex items-start justify-between mb-3 sm:mb-4">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-base sm:text-lg font-semibold mb-1 break-words" style={styles.heading.primary}>
                       {chart.name}
                     </h3>
                     {chart.description && (
-                      <p className="text-sm line-clamp-2" style={{ color: theme.colors.textSecondary }}>
+                      <p className="text-xs sm:text-sm line-clamp-2 break-words" style={{ color: theme.colors.textSecondary }}>
                         {chart.description}
                       </p>
                     )}
@@ -94,9 +94,9 @@ export default function ChartList() {
                   />
                 </div>
 
-                <div style={{ borderTopWidth: '1px', borderTopStyle: 'solid', borderTopColor: theme.colors.borderPrimary }} className="pt-4">
-                  <div className="flex items-center justify-between text-xs" style={{ color: theme.colors.textSecondary }}>
-                    <span>Created {new Date(chart.createdAt).toLocaleDateString()}</span>
+                <div style={{ borderTopWidth: '1px', borderTopStyle: 'solid', borderTopColor: theme.colors.borderPrimary }} className="pt-3 sm:pt-4">
+                  <div className="flex items-center justify-between text-xs sm:text-sm" style={{ color: theme.colors.textSecondary }}>
+                    <span className="truncate">Created {new Date(chart.createdAt).toLocaleDateString()}</span>
                     <Button
                       size="sm"
                       onClick={(e) => {

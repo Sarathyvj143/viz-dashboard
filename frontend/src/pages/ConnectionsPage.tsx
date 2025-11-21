@@ -107,44 +107,44 @@ export default function ConnectionsPage() {
         subtitle="Manage database connections and external data sources"
       />
 
-      <div className="p-6">
+      <div className="p-3 sm:p-4 md:p-6 max-w-full lg:max-w-7xl xl:max-w-[1600px] mx-auto">
         {/* Action Bar */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="text-sm text-gray-600">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6">
+          <div className="text-xs sm:text-sm text-gray-600">
             {connections.length} connection{connections.length !== 1 ? 's' : ''}
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">
             {/* View Toggle */}
             {connections.length > 0 && (
               <div className="inline-flex rounded-md shadow-sm" role="group">
                 <button
                   onClick={() => setViewMode('table')}
-                  className={`px-3 py-2 text-sm font-medium border ${
+                  className={`px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium border ${
                     viewMode === 'table'
                       ? 'bg-blue-600 text-white border-blue-600 z-10'
                       : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                   } rounded-l-md transition-colors`}
                   aria-label="Table view"
                 >
-                  <ViewColumnsIcon className="w-4 h-4 inline mr-1" />
-                  Table
+                  <ViewColumnsIcon className="w-3 h-3 sm:w-4 sm:h-4 inline sm:mr-1" />
+                  <span className="hidden sm:inline">Table</span>
                 </button>
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`px-3 py-2 text-sm font-medium border-t border-b border-r ${
+                  className={`px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium border-t border-b border-r ${
                     viewMode === 'grid'
                       ? 'bg-blue-600 text-white border-blue-600 z-10'
                       : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                   } rounded-r-md transition-colors`}
                   aria-label="Grid view"
                 >
-                  <Squares2X2Icon className="w-4 h-4 inline mr-1" />
-                  Grid
+                  <Squares2X2Icon className="w-3 h-3 sm:w-4 sm:h-4 inline sm:mr-1" />
+                  <span className="hidden sm:inline">Grid</span>
                 </button>
               </div>
             )}
 
-            <Button onClick={handleCreate}>
+            <Button onClick={handleCreate} className="text-sm sm:text-base">
               + New Connection
             </Button>
           </div>

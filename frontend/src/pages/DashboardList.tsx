@@ -153,13 +153,13 @@ export default function DashboardList() {
           )
         }
       />
-      <div className="p-4 sm:p-6">
+      <div className="p-3 sm:p-4 md:p-6 max-w-full lg:max-w-7xl xl:max-w-[1600px] mx-auto">
         {/* Mobile view - Cards */}
-        <div className="block md:hidden space-y-4">
+        <div className="block md:hidden space-y-3 sm:space-y-4">
           {dashboards.map((dashboard) => (
             <div
               key={dashboard.id}
-              className="rounded-lg p-4 hover:shadow-md transition-shadow"
+              className="rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow cursor-pointer"
               style={{
                 backgroundColor: theme.colors.bgSecondary,
                 borderColor: theme.colors.borderPrimary,
@@ -168,25 +168,25 @@ export default function DashboardList() {
               }}
               onClick={() => navigate(`/dashboards/${dashboard.id}`)}
             >
-              <div className="flex items-start justify-between mb-3">
-                <h3 className="text-base font-semibold flex-1" style={{ color: theme.colors.textPrimary }}>
+              <div className="flex items-start justify-between mb-2 sm:mb-3">
+                <h3 className="text-sm sm:text-base font-semibold flex-1 break-words" style={{ color: theme.colors.textPrimary }}>
                   {dashboard.name}
                 </h3>
                 {dashboard.is_public && (
-                  <ShareIcon className="ml-2 h-5 w-5 flex-shrink-0" style={{ color: theme.colors.info }} />
+                  <ShareIcon className="ml-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" style={{ color: theme.colors.info }} />
                 )}
               </div>
 
               {dashboard.description && (
-                <p className="text-sm mb-3 line-clamp-2" style={{ color: theme.colors.textSecondary }}>
+                <p className="text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2 break-words" style={{ color: theme.colors.textSecondary }}>
                   {dashboard.description}
                 </p>
               )}
 
-              <div className="flex items-center justify-between text-xs mb-3" style={styles.text.secondary}>
-                <span>Updated {new Date(dashboard.updated_at).toLocaleDateString()}</span>
+              <div className="flex items-center justify-between text-xs mb-2 sm:mb-3" style={styles.text.secondary}>
+                <span className="truncate">Updated {new Date(dashboard.updated_at).toLocaleDateString()}</span>
                 {dashboard.public_access_count > 0 && (
-                  <span className="px-2 py-1 rounded" style={styles.badge('info')}>
+                  <span className="px-2 py-1 rounded text-xs flex-shrink-0 ml-2" style={styles.badge('info')}>
                     {dashboard.public_access_count} views
                   </span>
                 )}
@@ -198,7 +198,7 @@ export default function DashboardList() {
                     e.stopPropagation();
                     handleDelete(dashboard.id);
                   }}
-                  className="w-full flex items-center justify-center gap-1 text-sm rounded px-3 py-2 transition-colors"
+                  className="w-full flex items-center justify-center gap-1 text-xs sm:text-sm rounded px-3 py-2 transition-colors"
                   style={{
                     color: theme.colors.error,
                     ...styles.border.primary,
@@ -207,7 +207,7 @@ export default function DashboardList() {
                   }}
                   {...deleteButtonHoverMobile}
                 >
-                  <TrashIcon className="h-4 w-4" />
+                  <TrashIcon className="h-3 w-3 sm:h-4 sm:w-4" />
                   Delete Dashboard
                 </button>
               )}
@@ -226,25 +226,33 @@ export default function DashboardList() {
           }}
         >
           <div className="overflow-x-auto">
-            <table className="min-w-full" style={{ borderColor: theme.colors.borderPrimary }}>
+            <table className="min-w-full table-fixed w-full" style={{ borderColor: theme.colors.borderPrimary }}>
+              <colgroup>
+                <col className="w-1/4 min-w-[200px]" />
+                <col className="w-1/3 min-w-[250px]" />
+                <col className="w-[120px]" />
+                <col className="w-[80px]" />
+                <col className="w-[120px]" />
+                <col className="w-[80px]" />
+              </colgroup>
               <thead style={{ backgroundColor: theme.colors.bgTertiary }}>
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: theme.colors.textSecondary }}>
+                  <th className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: theme.colors.textSecondary }}>
                     Dashboard Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: theme.colors.textSecondary }}>
+                  <th className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: theme.colors.textSecondary }}>
                     Description
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: theme.colors.textSecondary }}>
+                  <th className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: theme.colors.textSecondary }}>
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: theme.colors.textSecondary }}>
+                  <th className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: theme.colors.textSecondary }}>
                     Views
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: theme.colors.textSecondary }}>
+                  <th className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: theme.colors.textSecondary }}>
                     Updated
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: theme.colors.textSecondary }}>
+                  <th className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: theme.colors.textSecondary }}>
                     Actions
                   </th>
                 </tr>
@@ -258,38 +266,41 @@ export default function DashboardList() {
                     onClick={() => navigate(`/dashboards/${dashboard.id}`)}
                     {...tableRowHover}
                   >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <ChartBarIcon className="h-5 w-5 mr-3" style={{ color: theme.colors.textSecondary }} />
-                        <div className="text-sm font-medium" style={{ color: theme.colors.textPrimary }}>
+                    <td className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4">
+                      <div className="flex items-center min-w-0">
+                        <ChartBarIcon className="h-4 w-4 lg:h-5 lg:w-5 mr-2 lg:mr-3 flex-shrink-0" style={{ color: theme.colors.textSecondary }} />
+                        <div className="text-xs md:text-sm font-medium truncate" style={{ color: theme.colors.textPrimary }}>
                           {dashboard.name}
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm max-w-xs truncate" style={{ color: theme.colors.textSecondary }}>
+                    <td className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4">
+                      <div className="text-xs md:text-sm truncate" style={{ color: theme.colors.textSecondary }}>
                         {dashboard.description || '-'}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4">
                       {dashboard.is_public ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={styles.badge('info')}>
-                          <ShareIcon className="h-3 w-3 mr-1" />
-                          Public
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap" style={styles.badge('info')}>
+                          <ShareIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                          <span className="hidden lg:inline">Public</span>
+                          <span className="lg:hidden">Pub</span>
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={styles.bg.tertiary}>
-                          <span style={styles.text.secondary}>Private</span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap" style={styles.bg.tertiary}>
+                          <span style={styles.text.secondary} className="hidden lg:inline">Private</span>
+                          <span style={styles.text.secondary} className="lg:hidden">Priv</span>
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: theme.colors.textSecondary }}>
+                    <td className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm" style={{ color: theme.colors.textSecondary }}>
                       {dashboard.public_access_count > 0 ? dashboard.public_access_count : '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: theme.colors.textSecondary }}>
-                      {new Date(dashboard.updated_at).toLocaleDateString()}
+                    <td className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm" style={{ color: theme.colors.textSecondary }}>
+                      <span className="hidden lg:inline">{new Date(dashboard.updated_at).toLocaleDateString()}</span>
+                      <span className="lg:hidden">{new Date(dashboard.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-right">
                       {canDelete(dashboard) && (
                         <button
                           onClick={(e) => {
@@ -301,7 +312,7 @@ export default function DashboardList() {
                           {...deleteButtonHoverDesktop}
                           aria-label={`Delete dashboard ${dashboard.name}`}
                         >
-                          <TrashIcon className="h-5 w-5" />
+                          <TrashIcon className="h-4 w-4 lg:h-5 lg:w-5" />
                         </button>
                       )}
                     </td>

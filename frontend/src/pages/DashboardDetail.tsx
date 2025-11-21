@@ -227,61 +227,63 @@ export default function DashboardDetail() {
         title={isNew ? 'Create Dashboard' : dashboard?.name || 'Dashboard'}
         subtitle={isNew ? 'Create a new dashboard' : 'Edit dashboard configuration'}
         actions={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {!isNew && dashboard && (
               <Button
                 onClick={() => setShowShareModal(true)}
                 variant="secondary"
+                className="flex items-center"
+                aria-label="Share dashboard"
               >
-                <ShareIcon className="h-4 w-4 mr-1" />
-                Share
+                <ShareIcon className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
+                <span className="hidden sm:inline ml-1">Share</span>
               </Button>
             )}
-            <Button onClick={() => navigate('/dashboards')} variant="secondary">
+            <Button onClick={() => navigate('/dashboards')} variant="secondary" className="text-sm sm:text-base">
               Cancel
             </Button>
           </div>
         }
       />
 
-      <div className="p-6 max-w-4xl">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <div className="p-3 sm:p-4 md:p-6 w-full max-w-full lg:max-w-6xl xl:max-w-7xl mx-auto">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-red-800">{error}</p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4">
+              <p className="text-sm sm:text-base text-red-800">{error}</p>
             </div>
           )}
 
-          <div className="rounded-lg p-6 space-y-4" style={{ backgroundColor: theme.colors.bgPrimary, borderColor: theme.colors.borderPrimary, borderWidth: '1px', borderStyle: 'solid' }}>
-            <h2 className="text-lg font-semibold" style={styles.heading.primary}>Basic Information</h2>
+          <div className="rounded-lg p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4" style={{ backgroundColor: theme.colors.bgPrimary, borderColor: theme.colors.borderPrimary, borderWidth: '1px', borderStyle: 'solid' }}>
+            <h2 className="text-sm sm:text-base md:text-lg font-semibold" style={styles.heading.primary}>Basic Information</h2>
 
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                 Dashboard Name *
               </label>
               <input
                 type="text"
                 id="name"
                 {...register('name')}
-                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full px-2 py-1.5 sm:px-3 sm:py-2 text-sm sm:text-base border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.name ? 'border-red-500' : 'border-gray-300'
                 }`}
                 placeholder="Enter dashboard name"
               />
               {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.name.message}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="description" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                 Description
               </label>
               <textarea
                 id="description"
                 {...register('description')}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-2 py-1.5 sm:px-3 sm:py-2 text-sm sm:text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter dashboard description (optional)"
               />
             </div>
@@ -291,22 +293,23 @@ export default function DashboardDetail() {
                 type="checkbox"
                 id="is_public"
                 {...register('is_public')}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
-              <label htmlFor="is_public" className="ml-2 block text-sm text-gray-700">
+              <label htmlFor="is_public" className="ml-2 block text-xs sm:text-sm text-gray-700">
                 Make this dashboard public (can be shared via link)
               </label>
             </div>
           </div>
 
-          <div className="flex gap-3">
-            <Button type="submit" disabled={saving}>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <Button type="submit" disabled={saving} className="w-full sm:w-auto text-sm sm:text-base">
               {saving ? 'Saving...' : isNew ? 'Create Dashboard' : 'Save Changes'}
             </Button>
             <Button
               type="button"
               variant="secondary"
               onClick={() => navigate('/dashboards')}
+              className="w-full sm:w-auto text-sm sm:text-base"
             >
               Cancel
             </Button>
@@ -327,77 +330,79 @@ export default function DashboardDetail() {
 
       {/* Share Modal */}
       {showShareModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="rounded-lg shadow-xl max-w-md w-full p-6" style={{ backgroundColor: theme.colors.bgPrimary }}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold" style={styles.heading.primary}>Share Dashboard</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="rounded-lg shadow-xl max-w-md w-full p-3 sm:p-4 md:p-6 max-h-[90vh] overflow-y-auto" style={{ backgroundColor: theme.colors.bgPrimary }}>
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h3 className="text-sm sm:text-base md:text-lg font-semibold" style={styles.heading.primary}>Share Dashboard</h3>
               <button
                 onClick={() => setShowShareModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 flex-shrink-0 ml-2"
+                aria-label="Close share modal"
               >
-                <XMarkIcon className="h-5 w-5" />
+                <XMarkIcon className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
             </div>
 
             {shareUrl ? (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                     Public Share Link
                   </label>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2">
                     <input
                       type="text"
                       readOnly
                       value={shareUrl}
-                      className="flex-1 px-3 py-2 border rounded-md"
+                      className="w-full px-2 py-1.5 sm:px-3 sm:py-2 border rounded-md text-xs sm:text-sm break-all"
                       style={{ backgroundColor: theme.colors.bgSecondary, borderColor: theme.colors.borderPrimary }}
                     />
-                    <Button onClick={copyShareLink} variant="secondary">
-                      <LinkIcon className="h-4 w-4" />
+                    <Button onClick={copyShareLink} variant="secondary" className="w-full text-sm sm:text-base">
+                      <LinkIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                      Copy Link
                     </Button>
                   </div>
-                  <p className="mt-2 text-xs text-gray-500">
+                  <p className="mt-1.5 sm:mt-2 text-xs text-gray-500">
                     Anyone with this link can view this dashboard.
                   </p>
                 </div>
 
-                <div className="flex gap-2 pt-4 border-t">
+                <div className="flex flex-col gap-2 pt-3 sm:pt-4 border-t" style={{ borderColor: theme.colors.borderPrimary }}>
                   <Button
                     onClick={handleRevokeShareLink}
                     disabled={generating}
                     variant="secondary"
-                    className="flex-1"
+                    className="w-full text-sm sm:text-base"
                   >
                     {generating ? 'Revoking...' : 'Revoke Link'}
                   </Button>
                   <Button
                     onClick={() => setShowShareModal(false)}
-                    className="flex-1"
+                    className="w-full text-sm sm:text-base"
                   >
                     Close
                   </Button>
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
-                <p className="text-sm text-gray-600">
+              <div className="space-y-3 sm:space-y-4">
+                <p className="text-xs sm:text-sm text-gray-600">
                   Generate a public link that allows anyone to view this dashboard without logging in.
                   The link will expire after 30 days.
                 </p>
 
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2">
                   <Button
                     onClick={handleGenerateShareLink}
                     disabled={generating}
-                    className="flex-1"
+                    className="w-full text-sm sm:text-base"
                   >
                     {generating ? 'Generating...' : 'Generate Share Link'}
                   </Button>
                   <Button
                     onClick={() => setShowShareModal(false)}
                     variant="secondary"
-                    className="flex-1"
+                    className="w-full text-sm sm:text-base"
                   >
                     Cancel
                   </Button>

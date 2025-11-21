@@ -3,6 +3,7 @@ import GridLayout, { Layout } from 'react-grid-layout';
 import { PlusIcon, TrashIcon, Cog6ToothIcon, ChartBarIcon } from '@heroicons/react/24/outline';
 import Button from '../common/Button';
 import WidgetConfigModal from './WidgetConfigModal';
+import { useContainerWidth } from '../../hooks/useContainerWidth';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
@@ -25,6 +26,13 @@ export default function DashboardBuilder({
 }: DashboardBuilderProps) {
   const [configModalOpen, setConfigModalOpen] = useState(false);
   const [selectedWidgetId, setSelectedWidgetId] = useState<string | null>(null);
+
+  // Use custom hook for container width measurement with debouncing
+  const [containerRef, containerWidth] = useContainerWidth<HTMLDivElement>({
+    debounce: 150,
+    threshold: 10,
+    initialWidth: 1200,
+  });
 
   const handleLayoutChange = (newLayout: Layout[]) => {
     // Preserve chartId when layout changes
@@ -79,7 +87,7 @@ export default function DashboardBuilder({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h3 className="text-lg font-semibold text-gray-900">Dashboard Layout</h3>
           <p className="text-sm text-gray-500">
@@ -87,25 +95,28 @@ export default function DashboardBuilder({
           </p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={addWidget} variant="secondary">
+          <Button onClick={addWidget} variant="secondary" className="flex-1 sm:flex-initial">
             <PlusIcon className="h-4 w-4 mr-1" />
-            Add Widget
+            <span className="hidden sm:inline">Add Widget</span>
+            <span className="sm:hidden">Add</span>
           </Button>
-          <Button onClick={onSave} disabled={saving}>
+          <Button onClick={onSave} disabled={saving} className="flex-1 sm:flex-initial">
             {saving ? 'Saving...' : 'Save Layout'}
           </Button>
         </div>
       </div>
 
-      <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-4 min-h-[600px]">
+      <div ref={containerRef} className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-2 sm:p-4 min-h-[400px] sm:min-h-[600px]">
         <GridLayout
           className="layout"
           layout={initialLayout}
           cols={12}
           rowHeight={30}
-          width={1200}
+          width={containerWidth}
           onLayoutChange={handleLayoutChange}
           draggableHandle=".drag-handle"
+          compactType="vertical"
+          preventCollision={false}
         >
           {initialLayout.map((item) => (
             <div
@@ -113,15 +124,15 @@ export default function DashboardBuilder({
               className="bg-white border-2 border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="h-full flex flex-col">
-                <div className="drag-handle bg-gray-100 border-b border-gray-200 px-4 py-2 cursor-move flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">
+                <div className="drag-handle bg-gray-100 border-b border-gray-200 px-2 sm:px-4 py-2 cursor-move flex items-center justify-between">
+                  <span className="text-xs sm:text-sm font-medium text-gray-700 truncate">
                     {item.chartId ? `Chart Widget #${item.chartId}` : 'Unconfigured Widget'}
                   </span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                     <button
                       type="button"
                       onClick={() => configureWidget(item.i)}
-                      className="text-blue-600 hover:text-blue-700"
+                      className="text-blue-600 hover:text-blue-700 p-1"
                       title="Configure widget"
                     >
                       <Cog6ToothIcon className="h-4 w-4" />
@@ -129,26 +140,26 @@ export default function DashboardBuilder({
                     <button
                       type="button"
                       onClick={() => removeWidget(item.i)}
-                      className="text-red-600 hover:text-red-700"
+                      className="text-red-600 hover:text-red-700 p-1"
                       title="Remove widget"
                     >
                       <TrashIcon className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
-                <div className="flex-1 p-4 flex items-center justify-center">
+                <div className="flex-1 p-2 sm:p-4 flex items-center justify-center">
                   {item.chartId ? (
                     <div className="text-center text-gray-700">
-                      <ChartBarIcon className="h-12 w-12 mx-auto text-blue-600 mb-2" />
-                      <p className="text-sm font-medium">Chart #{item.chartId}</p>
+                      <ChartBarIcon className="h-8 sm:h-12 w-8 sm:w-12 mx-auto text-blue-600 mb-2" />
+                      <p className="text-xs sm:text-sm font-medium">Chart #{item.chartId}</p>
                       <p className="text-xs text-gray-500 mt-1">
                         Size: {item.w} x {item.h}
                       </p>
                     </div>
                   ) : (
                     <div className="text-center text-gray-500">
-                      <ChartBarIcon className="h-12 w-12 mx-auto text-gray-400 mb-2" />
-                      <p className="text-sm">No chart selected</p>
+                      <ChartBarIcon className="h-8 sm:h-12 w-8 sm:w-12 mx-auto text-gray-400 mb-2" />
+                      <p className="text-xs sm:text-sm">No chart selected</p>
                       <button
                         type="button"
                         onClick={() => configureWidget(item.i)}

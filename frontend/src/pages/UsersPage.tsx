@@ -43,13 +43,13 @@ export default function UsersPage() {
         title="User Management"
         subtitle="Manage users, roles, and permissions"
       />
-      <div className="p-6">
+      <div className="p-3 sm:p-4 md:p-6 max-w-full lg:max-w-7xl xl:max-w-[1600px] mx-auto">
         {/* Tab Navigation */}
-        <div className="mb-6" style={styles.borderBottom()}>
-          <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+        <div className="mb-4 sm:mb-6" style={styles.borderBottom()}>
+          <nav className="-mb-px flex space-x-4 sm:space-x-8 overflow-x-auto" aria-label="Tabs">
             <button
               onClick={() => setActiveTab('users')}
-              className="whitespace-nowrap py-4 px-1 font-medium text-sm"
+              className="whitespace-nowrap py-3 sm:py-4 px-1 font-medium text-xs sm:text-sm"
               style={{
                 borderBottomColor: activeTab === 'users' ? theme.colors.accentPrimary : 'transparent',
                 borderBottomWidth: '2px',
@@ -62,7 +62,7 @@ export default function UsersPage() {
             </button>
             <button
               onClick={() => setActiveTab('invitations')}
-              className="whitespace-nowrap py-4 px-1 font-medium text-sm"
+              className="whitespace-nowrap py-3 sm:py-4 px-1 font-medium text-xs sm:text-sm"
               style={{
                 borderBottomColor: activeTab === 'invitations' ? theme.colors.accentPrimary : 'transparent',
                 borderBottomWidth: '2px',
@@ -77,11 +77,11 @@ export default function UsersPage() {
         </div>
 
         {/* Tab Content */}
-        <div className="mt-6">
+        <div className="mt-4 sm:mt-6">
           {activeTab === 'users' && (
             <div>
-              <div className="mb-4 p-4 rounded-lg" style={styles.statusBox('info')}>
-                <p className="text-sm" style={styles.text.info}>
+              <div className="mb-3 sm:mb-4 p-3 sm:p-4 rounded-lg" style={styles.statusBox('info')}>
+                <p className="text-xs sm:text-sm" style={styles.text.info}>
                   <span className="font-semibold">System-wide user management:</span> Create and manage users across the entire platform.
                   Only system administrators can access this section.
                 </p>
@@ -92,8 +92,8 @@ export default function UsersPage() {
 
           {activeTab === 'invitations' && (
             <div>
-              <div className="mb-4 p-4 rounded-lg" style={styles.statusBox('info')}>
-                <p className="text-sm" style={styles.text.info}>
+              <div className="mb-3 sm:mb-4 p-3 sm:p-4 rounded-lg" style={styles.statusBox('info')}>
+                <p className="text-xs sm:text-sm" style={styles.text.info}>
                   <span className="font-semibold">Workspace invitations:</span> Invite users to join your workspace and manage workspace memberships.
                   Workspace administrators can invite users and assign roles within their workspace.
                 </p>

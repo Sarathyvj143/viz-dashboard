@@ -1,6 +1,7 @@
 import { ReactNode, useEffect } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 interface ModalProps {
   isOpen: boolean;
@@ -13,6 +14,9 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
   const { theme } = useTheme();
   const styles = useThemedStyles();
 
+  // Use coordinated scroll lock to prevent conflicts with Sidebar
+  useBodyScrollLock(isOpen);
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -20,12 +24,10 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
 
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
     };
   }, [isOpen, onClose]);
 

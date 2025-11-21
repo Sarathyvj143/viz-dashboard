@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { usePersistedState } from '../../hooks/usePersistedState';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import ThemeMenu from '../theme/ThemeMenu';
 import {
   HomeIcon,
@@ -14,7 +16,12 @@ import {
   ChevronRightIcon,
 } from '@heroicons/react/24/outline';
 
-export default function Sidebar() {
+interface SidebarProps {
+  isMobileMenuOpen: boolean;
+  setIsMobileMenuOpen: (value: boolean) => void;
+}
+
+export default function Sidebar({ isMobileMenuOpen, setIsMobileMenuOpen }: SidebarProps) {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
   const { theme } = useTheme();
@@ -37,11 +44,101 @@ export default function Sidebar() {
     item.roles.includes(user?.role || 'viewer')
   );
 
+  // Lock body scroll when mobile menu is open (coordinated with other components)
+  useBodyScrollLock(isMobileMenuOpen);
+
+  // Keyboard navigation for mobile menu (Escape to close, focus trap)
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+
+    // Handle Escape key to close menu
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    // Focus trap: keep focus within sidebar when open
+    const handleTabKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+
+      const sidebar = document.querySelector('[data-mobile-sidebar]');
+      if (!sidebar) return;
+
+      const focusableElements = sidebar.querySelectorAll<HTMLElement>(
+        'a, button, [tabindex]:not([tabindex="-1"])'
+      );
+
+      if (focusableElements.length === 0) return;
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (e.shiftKey) {
+        // Shift+Tab: if on first element, go to last
+        if (document.activeElement === firstElement) {
+          e.preventDefault();
+          lastElement.focus();
+        }
+      } else {
+        // Tab: if on last element, go to first
+        if (document.activeElement === lastElement) {
+          e.preventDefault();
+          firstElement.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keydown', handleTabKey);
+
+    // Focus first focusable element when menu opens
+    setTimeout(() => {
+      const sidebar = document.querySelector('[data-mobile-sidebar]');
+      const firstFocusable = sidebar?.querySelector<HTMLElement>(
+        'a, button, [tabindex]:not([tabindex="-1"])'
+      );
+      firstFocusable?.focus();
+    }, 100); // Small delay to ensure sidebar is fully rendered
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keydown', handleTabKey);
+    };
+  }, [isMobileMenuOpen, setIsMobileMenuOpen]);
+
   return (
-    <div
-      className={`flex h-full flex-col transition-all duration-300 ease-in-out ${isCollapsed ? 'w-20' : 'w-64'}`}
-      style={{ backgroundColor: theme.colors.bgSecondary }}
-    >
+    <>
+      {/* Mobile overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+          role="button"
+          tabIndex={0}
+          aria-label="Close mobile menu"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setIsMobileMenuOpen(false);
+            }
+          }}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div
+        data-mobile-sidebar
+        className={`
+          flex h-full flex-col transition-all duration-300 ease-in-out
+          fixed md:relative inset-y-0 left-0 z-50
+          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          ${isCollapsed ? 'w-20' : 'w-64'}
+        `}
+        style={{ backgroundColor: theme.colors.bgSecondary }}
+        role="navigation"
+        aria-label="Main navigation"
+      >
       {/* Logo/Brand */}
       <div
         className="flex h-16 shrink-0 items-center justify-between px-4 border-b"
@@ -62,7 +159,7 @@ export default function Sidebar() {
         </div>
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-1.5 rounded-lg transition-colors hover:opacity-80"
+          className="hidden md:block p-1.5 rounded-lg transition-colors hover:opacity-80"
           style={{ color: theme.colors.textSecondary }}
           title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
@@ -182,6 +279,7 @@ export default function Sidebar() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
