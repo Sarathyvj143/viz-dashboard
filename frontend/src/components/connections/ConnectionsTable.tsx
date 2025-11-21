@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Connection } from '../../types/connection';
 import { getConnectionTypeLabel, getConnectionDetails } from '../../utils/connectionHelpers';
 import {
@@ -8,6 +9,8 @@ import {
   BeakerIcon,
   ShieldCheckIcon,
 } from '@heroicons/react/24/outline';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface ConnectionsTableProps {
   connections: Connection[];
@@ -28,91 +31,111 @@ export default function ConnectionsTable({
   onDelete,
   onManagePermissions,
 }: ConnectionsTableProps) {
+  const styles = useThemedStyles();
+  const { theme } = useTheme();
+  const [hoveredRowId, setHoveredRowId] = useState<number | null>(null);
+  const [hoveredButtonId, setHoveredButtonId] = useState<string | null>(null);
+
   return (
-    <div className="bg-white shadow-md rounded-lg overflow-hidden">
-      <table className="min-w-full divide-y divide-gray-200" aria-label="Database connections">
+    <div className="shadow-md rounded-lg overflow-hidden" style={{ backgroundColor: theme.colors.bgPrimary }}>
+      <table className="min-w-full" style={{ borderTopColor: theme.colors.borderPrimary, borderTopWidth: '1px', borderTopStyle: 'solid' }} aria-label="Database connections">
         <caption className="sr-only">
           List of {connections.length} database and storage connections
         </caption>
-        <thead className="bg-gray-50">
+        <thead style={styles.table.header}>
           <tr>
             <th
               scope="col"
               id="connection-name"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+              style={styles.table.headerCell}
             >
               Name
             </th>
             <th
               scope="col"
               id="connection-type"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+              style={styles.table.headerCell}
             >
               Type
             </th>
             <th
               scope="col"
               id="connection-details"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+              style={styles.table.headerCell}
             >
               Details
             </th>
             <th
               scope="col"
               id="connection-status"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+              style={styles.table.headerCell}
             >
               Status
             </th>
             <th
               scope="col"
               id="connection-created"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+              style={styles.table.headerCell}
             >
               Created
             </th>
             <th
               scope="col"
               id="connection-actions"
-              className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+              className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider"
+              style={styles.table.headerCell}
             >
               <span className="sr-only">Actions</span>
               Actions
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody style={styles.table.body}>
           {connections.map((connection) => (
-            <tr key={connection.id} className="hover:bg-gray-50 transition-colors">
+            <tr
+              key={connection.id}
+              className="transition-colors"
+              style={{
+                ...styles.table.row,
+                ...(hoveredRowId === connection.id ? styles.table.rowHover : {}),
+              }}
+              onMouseEnter={() => setHoveredRowId(connection.id)}
+              onMouseLeave={() => setHoveredRowId(null)}
+            >
               <td headers="connection-name" className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm font-medium text-gray-900">
+                <div className="text-sm font-medium" style={styles.table.cell}>
                   {connection.name}
                 </div>
               </td>
               <td headers="connection-type" className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">
+                <div className="text-sm" style={styles.table.cell}>
                   {getConnectionTypeLabel(connection.type)}
                 </div>
               </td>
               <td headers="connection-details" className="px-6 py-4">
-                <div className="text-sm text-gray-600 max-w-md truncate">
+                <div className="text-sm max-w-md truncate" style={styles.table.cellSecondary}>
                   {getConnectionDetails(connection)}
                 </div>
               </td>
               <td headers="connection-status" className="px-6 py-4 whitespace-nowrap">
                 {connection.is_active ? (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={styles.badge('success')}>
                     <CheckCircleIcon className="w-4 h-4 mr-1" />
                     Active
                   </span>
                 ) : (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={styles.badge('info')}>
                     <XCircleIcon className="w-4 h-4 mr-1" />
                     Inactive
                   </span>
                 )}
               </td>
-              <td headers="connection-created" className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+              <td headers="connection-created" className="px-6 py-4 whitespace-nowrap text-sm" style={styles.table.cellSecondary}>
                 {new Date(connection.created_at).toLocaleDateString()}
               </td>
               <td headers="connection-actions" className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -120,7 +143,14 @@ export default function ConnectionsTable({
                   <button
                     onClick={() => onTest(connection.id)}
                     disabled={testingId === connection.id}
-                    className="inline-flex items-center p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    onMouseEnter={() => setHoveredButtonId(`test-${connection.id}`)}
+                    onMouseLeave={() => setHoveredButtonId(null)}
+                    className="inline-flex items-center p-2 rounded-md transition-colors disabled:opacity-50 focus:outline-none focus:ring-2"
+                    style={{
+                      color: theme.colors.info,
+                      backgroundColor: hoveredButtonId === `test-${connection.id}` ? theme.colors.bgSecondary : 'transparent',
+                      outlineColor: theme.colors.info,
+                    }}
                     title="Test connection"
                     aria-label={`Test connection ${connection.name}`}
                   >
@@ -129,7 +159,14 @@ export default function ConnectionsTable({
                   {onManagePermissions && (
                     <button
                       onClick={() => onManagePermissions(connection)}
-                      className="inline-flex items-center p-2 text-purple-600 hover:bg-purple-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                      onMouseEnter={() => setHoveredButtonId(`permissions-${connection.id}`)}
+                      onMouseLeave={() => setHoveredButtonId(null)}
+                      className="inline-flex items-center p-2 rounded-md transition-colors focus:outline-none focus:ring-2"
+                      style={{
+                        color: theme.colors.accentSecondary || '#9333ea',
+                        backgroundColor: hoveredButtonId === `permissions-${connection.id}` ? theme.colors.bgSecondary : 'transparent',
+                        outlineColor: theme.colors.accentSecondary || '#9333ea',
+                      }}
                       title="Manage permissions"
                       aria-label={`Manage permissions for ${connection.name}`}
                     >
@@ -138,7 +175,14 @@ export default function ConnectionsTable({
                   )}
                   <button
                     onClick={() => onEdit(connection)}
-                    className="inline-flex items-center p-2 text-gray-600 hover:bg-gray-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                    onMouseEnter={() => setHoveredButtonId(`edit-${connection.id}`)}
+                    onMouseLeave={() => setHoveredButtonId(null)}
+                    className="inline-flex items-center p-2 rounded-md transition-colors focus:outline-none focus:ring-2"
+                    style={{
+                      color: theme.colors.textSecondary,
+                      backgroundColor: hoveredButtonId === `edit-${connection.id}` ? theme.colors.bgSecondary : 'transparent',
+                      outlineColor: theme.colors.textSecondary,
+                    }}
                     title="Edit connection"
                     aria-label={`Edit connection ${connection.name}`}
                   >
@@ -147,7 +191,14 @@ export default function ConnectionsTable({
                   <button
                     onClick={() => onDelete(connection.id)}
                     disabled={deletingId === connection.id}
-                    className="inline-flex items-center p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                    onMouseEnter={() => setHoveredButtonId(`delete-${connection.id}`)}
+                    onMouseLeave={() => setHoveredButtonId(null)}
+                    className="inline-flex items-center p-2 rounded-md transition-colors disabled:opacity-50 focus:outline-none focus:ring-2"
+                    style={{
+                      color: theme.colors.error,
+                      backgroundColor: hoveredButtonId === `delete-${connection.id}` ? theme.colors.bgSecondary : 'transparent',
+                      outlineColor: theme.colors.error,
+                    }}
                     title="Delete connection"
                     aria-label={`Delete connection ${connection.name}`}
                   >

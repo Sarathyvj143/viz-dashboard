@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useConnectionStore } from '../store/connectionStore';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 import { Connection } from '../types/connection';
 import Header from '../components/layout/Header';
 import Button from '../components/common/Button';
@@ -14,6 +15,7 @@ import { ViewColumnsIcon, Squares2X2Icon } from '@heroicons/react/24/outline';
 type ViewMode = 'table' | 'grid';
 
 export default function ConnectionsPage() {
+  const styles = useThemedStyles();
   const {
     connections,
     isLoading,
@@ -159,7 +161,7 @@ export default function ConnectionsPage() {
         {!isLoading && connections.length === 0 && (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🔌</div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold mb-2" style={styles.heading.primary}>
               No connections configured
             </h3>
             <p className="text-gray-600 mb-6">

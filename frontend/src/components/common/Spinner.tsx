@@ -1,6 +1,9 @@
+import { useTheme } from '../../contexts/ThemeContext';
+
 interface SpinnerProps {
   size?: 'sm' | 'md' | 'lg';
-  color?: 'gray' | 'white' | 'blue';
+  variant?: 'primary' | 'accent' | 'white';
+  color?: string; // Custom color override
   className?: string;
 }
 
@@ -10,16 +13,30 @@ const sizeMap = {
   lg: 'h-8 w-8',
 };
 
-const colorMap = {
-  gray: 'border-gray-900',
-  white: 'border-white',
-  blue: 'border-blue-600',
-};
+export default function Spinner({ size = 'md', variant = 'primary', color: customColor, className = '' }: SpinnerProps) {
+  const { theme } = useTheme();
 
-export default function Spinner({ size = 'md', color = 'gray', className = '' }: SpinnerProps) {
+  const getColor = () => {
+    if (customColor) return customColor;
+
+    switch (variant) {
+      case 'primary':
+        return theme.colors.textPrimary;
+      case 'accent':
+        return theme.colors.accentPrimary;
+      case 'white':
+        return '#ffffff';
+      default:
+        return theme.colors.textPrimary;
+    }
+  };
+
+  const color = getColor();
+
   return (
     <div
-      className={`animate-spin rounded-full border-b-2 ${sizeMap[size]} ${colorMap[color]} ${className}`}
+      className={`animate-spin rounded-full border-b-2 ${sizeMap[size]} ${className}`}
+      style={{ borderColor: color }}
       role="status"
       aria-label="Loading"
     >

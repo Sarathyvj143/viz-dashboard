@@ -5,6 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Layout } from 'react-grid-layout';
 import { ShareIcon, LinkIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useThemedStyles } from '../hooks/useThemedStyles';
+import { useTheme } from '../contexts/ThemeContext';
 import Header from '../components/layout/Header';
 import Button from '../components/common/Button';
 import DashboardBuilder from '../components/dashboard/DashboardBuilder';
@@ -25,6 +27,8 @@ export default function DashboardDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isNew = id === 'new';
+  const styles = useThemedStyles();
+  const { theme } = useTheme();
   const { showToast } = useToastStore();
 
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
@@ -248,8 +252,8 @@ export default function DashboardDetail() {
             </div>
           )}
 
-          <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900">Basic Information</h2>
+          <div className="rounded-lg p-6 space-y-4" style={{ backgroundColor: theme.colors.bgPrimary, borderColor: theme.colors.borderPrimary, borderWidth: '1px', borderStyle: 'solid' }}>
+            <h2 className="text-lg font-semibold" style={styles.heading.primary}>Basic Information</h2>
 
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -324,9 +328,9 @@ export default function DashboardDetail() {
       {/* Share Modal */}
       {showShareModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+          <div className="rounded-lg shadow-xl max-w-md w-full p-6" style={{ backgroundColor: theme.colors.bgPrimary }}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Share Dashboard</h3>
+              <h3 className="text-lg font-semibold" style={styles.heading.primary}>Share Dashboard</h3>
               <button
                 onClick={() => setShowShareModal(false)}
                 className="text-gray-400 hover:text-gray-600"
@@ -346,7 +350,8 @@ export default function DashboardDetail() {
                       type="text"
                       readOnly
                       value={shareUrl}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
+                      className="flex-1 px-3 py-2 border rounded-md"
+                      style={{ backgroundColor: theme.colors.bgSecondary, borderColor: theme.colors.borderPrimary }}
                     />
                     <Button onClick={copyShareLink} variant="secondary">
                       <LinkIcon className="h-4 w-4" />

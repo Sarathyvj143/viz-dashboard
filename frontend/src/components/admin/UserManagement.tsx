@@ -3,10 +3,15 @@ import { usersApi, UserListItem, UserCreate, UserUpdate, UserDetailResponse } fr
 import Button from '../common/Button';
 import Modal from '../common/Modal';
 import Input from '../common/Input';
+import Dropdown from '../common/Dropdown';
 import { PlusIcon, PencilIcon, TrashIcon, EyeIcon, KeyIcon } from '@heroicons/react/24/outline';
 import { useToastStore } from '../../store/toastStore';
-import { formatDate, getRoleBadgeColor } from '../../utils/uiHelpers';
+import { formatDate, getRoleBadgeStyles } from '../../utils/uiHelpers';
 import { getApiErrorMessage } from '../../utils/errorHandling';
+import { ThemedIcon } from '../../utils/iconColors';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
+import { useTheme } from '../../contexts/ThemeContext';
+import { ROLE_OPTIONS, STATUS_OPTIONS } from '../../constants/dropdownOptions';
 
 interface UserFormData {
   username: string;
@@ -23,6 +28,8 @@ interface EditFormData {
 
 export default function UserManagement() {
   const { showToast } = useToastStore();
+  const styles = useThemedStyles();
+  const { theme } = useTheme();
   const [users, setUsers] = useState<UserListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +37,7 @@ export default function UserManagement() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState<'admin' | 'editor' | 'viewer' | ''>('');
+  const [roleFilter, setRoleFilter] = useState<'admin' | 'editor' | 'viewer' | undefined>(undefined);
   const [activeFilter, setActiveFilter] = useState<boolean | undefined>(undefined);
 
   // Modal states
@@ -54,6 +61,7 @@ export default function UserManagement() {
     is_active: true
   });
   const [newPassword, setNewPassword] = useState('');
+  const [hoveredRowId, setHoveredRowId] = useState<number | null>(null);
 
   const loadUsers = async () => {
     try {
@@ -173,11 +181,11 @@ export default function UserManagement() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md">
+    <div className="rounded-lg shadow-md" style={{ backgroundColor: theme.colors.bgPrimary }}>
       {/* Header */}
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-6" style={{ ...styles.borderBottom() }}>
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold text-gray-900">User Management</h2>
+          <h2 style={styles.typography.h2}>User Management</h2>
           <Button
             variant="primary"
             onClick={() => setIsCreateModalOpen(true)}
@@ -198,25 +206,24 @@ export default function UserManagement() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <select
-            className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value as 'admin' | 'editor' | 'viewer' | '')}
-          >
-            <option value="">All Roles</option>
-            <option value="admin">Admin</option>
-            <option value="editor">Editor</option>
-            <option value="viewer">Viewer</option>
-          </select>
-          <select
-            className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={activeFilter === undefined ? '' : activeFilter.toString()}
-            onChange={(e) => setActiveFilter(e.target.value === '' ? undefined : e.target.value === 'true')}
-          >
-            <option value="">All Status</option>
-            <option value="true">Active</option>
-            <option value="false">Inactive</option>
-          </select>
+          <div className="min-w-[200px]">
+            <Dropdown
+              options={ROLE_OPTIONS}
+              value={roleFilter}
+              onChange={(value) => setRoleFilter(value)}
+              placeholder="All Roles"
+              clearable
+            />
+          </div>
+          <div className="min-w-[180px]">
+            <Dropdown
+              options={STATUS_OPTIONS}
+              value={activeFilter}
+              onChange={(value) => setActiveFilter(value)}
+              placeholder="All Status"
+              clearable
+            />
+          </div>
         </div>
       </div>
 
@@ -230,89 +237,98 @@ export default function UserManagement() {
       {/* User Table */}
       <div className="overflow-x-auto">
         {loading ? (
-          <div className="p-12 text-center text-gray-500">Loading users...</div>
+          <div className="p-12 text-center" style={{ color: theme.colors.textSecondary }}>Loading users...</div>
         ) : users.length === 0 ? (
-          <div className="p-12 text-center text-gray-500">No users found</div>
+          <div className="p-12 text-center" style={{ color: theme.colors.textSecondary }}>No users found</div>
         ) : (
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead style={styles.table.header}>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={styles.table.headerCell}>
                   User
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={styles.table.headerCell}>
                   Role
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={styles.table.headerCell}>
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={styles.table.headerCell}>
                   Workspaces
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={styles.table.headerCell}>
                   Last Login
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={styles.table.headerCell}>
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody style={styles.table.body}>
               {users.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
+                <tr
+                  key={user.id}
+                  style={{
+                    ...styles.table.row,
+                    ...(hoveredRowId === user.id ? styles.table.rowHover : {}),
+                  }}
+                  onMouseEnter={() => setHoveredRowId(user.id)}
+                  onMouseLeave={() => setHoveredRowId(null)}
+                >
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-gray-900">{user.username}</span>
-                      <span className="text-sm text-gray-500">{user.email}</span>
+                      <span className="text-sm font-medium" style={styles.table.cell}>{user.username}</span>
+                      <span className="text-sm" style={styles.table.cellSecondary}>{user.email}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(user.role)}`}>
+                    <span
+                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                      style={getRoleBadgeStyles(user.role, theme)}
+                    >
                       {user.role}
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={user.is_active ? styles.badge('success') : styles.badge('error')}>
                       {user.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
+                  <td className="px-6 py-4 text-sm" style={styles.table.cell}>
                     {user.workspace_count}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="px-6 py-4 text-sm" style={styles.table.cellSecondary}>
                     {formatDate(user.last_login)}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleViewUser(user)}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="hover:opacity-80 transition-opacity"
                         title="View Details"
                       >
-                        <EyeIcon className="w-5 h-5" />
+                        <ThemedIcon Icon={EyeIcon} variant="info" className="w-5 h-5" />
                       </button>
                       <button
                         onClick={() => openEditModal(user)}
-                        className="text-yellow-600 hover:text-yellow-800"
+                        className="hover:opacity-80 transition-opacity"
                         title="Edit User"
                       >
-                        <PencilIcon className="w-5 h-5" />
+                        <ThemedIcon Icon={PencilIcon} variant="accent" className="w-5 h-5" />
                       </button>
                       <button
                         onClick={() => openResetPasswordModal(user)}
-                        className="text-green-600 hover:text-green-800"
+                        className="hover:opacity-80 transition-opacity"
                         title="Reset Password"
                       >
-                        <KeyIcon className="w-5 h-5" />
+                        <ThemedIcon Icon={KeyIcon} variant="warning" className="w-5 h-5" />
                       </button>
                       <button
                         onClick={() => handleDeleteUser(user.id)}
-                        className="text-red-600 hover:text-red-800"
+                        className="hover:opacity-80 transition-opacity"
                         title="Deactivate User"
                       >
-                        <TrashIcon className="w-5 h-5" />
+                        <ThemedIcon Icon={TrashIcon} variant="error" className="w-5 h-5" />
                       </button>
                     </div>
                   </td>
@@ -325,8 +341,8 @@ export default function UserManagement() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-          <div className="text-sm text-gray-700">
+        <div className="px-6 py-4 flex items-center justify-between" style={{ borderTop: `1px solid ${theme.colors.borderPrimary}` }}>
+          <div className="text-sm" style={{ color: theme.colors.textPrimary }}>
             Showing {users.length} of {total} users
           </div>
           <div className="flex gap-2">
@@ -338,7 +354,7 @@ export default function UserManagement() {
             >
               Previous
             </Button>
-            <span className="px-4 py-2 text-sm text-gray-700">
+            <span className="px-4 py-2 text-sm" style={{ color: theme.colors.textPrimary }}>
               Page {page} of {totalPages}
             </span>
             <Button
@@ -381,18 +397,12 @@ export default function UserManagement() {
             value={createFormData.password}
             onChange={(e) => setCreateFormData({ ...createFormData, password: e.target.value })}
           />
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-            <select
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={createFormData.role}
-              onChange={(e) => setCreateFormData({ ...createFormData, role: e.target.value as 'admin' | 'editor' | 'viewer' })}
-            >
-              <option value="viewer">Viewer</option>
-              <option value="editor">Editor</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
+          <Dropdown
+            label="Role"
+            options={ROLE_OPTIONS}
+            value={createFormData.role}
+            onChange={(value) => setCreateFormData({ ...createFormData, role: value ?? 'viewer' })}
+          />
           <div className="flex gap-2 justify-end pt-4">
             <Button variant="secondary" type="button" onClick={() => setIsCreateModalOpen(false)}>
               Cancel
@@ -411,8 +421,8 @@ export default function UserManagement() {
         title="Edit User"
       >
         <form onSubmit={handleEditUser} className="space-y-4">
-          <div className="mb-4 p-4 bg-gray-50 rounded-md">
-            <p className="text-sm text-gray-600">
+          <div className="mb-4 p-4 rounded-md" style={{ backgroundColor: theme.colors.bgSecondary }}>
+            <p className="text-sm" style={styles.text.secondary}>
               <span className="font-medium">Username:</span> {selectedUser?.username}
             </p>
           </div>
@@ -423,27 +433,25 @@ export default function UserManagement() {
             value={editFormData.email}
             onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
           />
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-            <select
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={editFormData.role}
-              onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value as 'admin' | 'editor' | 'viewer' })}
-            >
-              <option value="viewer">Viewer</option>
-              <option value="editor">Editor</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
+          <Dropdown
+            label="Role"
+            options={ROLE_OPTIONS}
+            value={editFormData.role}
+            onChange={(value) => setEditFormData({ ...editFormData, role: value ?? 'viewer' })}
+          />
           <div className="flex items-center">
             <input
               type="checkbox"
               id="is_active"
               checked={editFormData.is_active}
               onChange={(e) => setEditFormData({ ...editFormData, is_active: e.target.checked })}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              className="h-4 w-4 rounded"
+              style={{
+                accentColor: theme.colors.accentPrimary,
+                borderColor: theme.colors.borderPrimary
+              }}
             />
-            <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">
+            <label htmlFor="is_active" className="ml-2 block text-sm" style={{ color: theme.colors.textPrimary }}>
               Active
             </label>
           </div>
@@ -468,67 +476,71 @@ export default function UserManagement() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-500">Username</label>
-                <p className="text-gray-900">{userDetails.username}</p>
+                <label className="text-sm font-medium" style={{ color: theme.colors.textSecondary }}>Username</label>
+                <p style={{ color: theme.colors.textPrimary }}>{userDetails.username}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">Email</label>
-                <p className="text-gray-900">{userDetails.email}</p>
+                <label className="text-sm font-medium" style={{ color: theme.colors.textSecondary }}>Email</label>
+                <p style={{ color: theme.colors.textPrimary }}>{userDetails.email}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">Role</label>
+                <label className="text-sm font-medium" style={{ color: theme.colors.textSecondary }}>Role</label>
                 <p>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(userDetails.role)}`}>
+                  <span
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    style={getRoleBadgeStyles(userDetails.role, theme)}
+                  >
                     {userDetails.role}
                   </span>
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">Status</label>
+                <label className="text-sm font-medium" style={{ color: theme.colors.textSecondary }}>Status</label>
                 <p>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    userDetails.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={userDetails.is_active ? styles.badge('success') : styles.badge('error')}>
                     {userDetails.is_active ? 'Active' : 'Inactive'}
                   </span>
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">Email Verified</label>
-                <p className="text-gray-900">{userDetails.email_verified ? 'Yes' : 'No'}</p>
+                <label className="text-sm font-medium" style={{ color: theme.colors.textSecondary }}>Email Verified</label>
+                <p style={{ color: theme.colors.textPrimary }}>{userDetails.email_verified ? 'Yes' : 'No'}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">Created At</label>
-                <p className="text-gray-900">{formatDate(userDetails.created_at)}</p>
+                <label className="text-sm font-medium" style={{ color: theme.colors.textSecondary }}>Created At</label>
+                <p style={{ color: theme.colors.textPrimary }}>{formatDate(userDetails.created_at)}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">Last Login</label>
-                <p className="text-gray-900">{formatDate(userDetails.last_login)}</p>
+                <label className="text-sm font-medium" style={{ color: theme.colors.textSecondary }}>Last Login</label>
+                <p style={{ color: theme.colors.textPrimary }}>{formatDate(userDetails.last_login)}</p>
               </div>
             </div>
 
             {userDetails.workspaces.length > 0 && (
               <div>
-                <label className="text-sm font-medium text-gray-500 mb-2 block">Workspace Memberships</label>
-                <div className="border border-gray-200 rounded-md overflow-hidden">
+                <label className="text-sm font-medium mb-2 block" style={{ color: theme.colors.textSecondary }}>Workspace Memberships</label>
+                <div className="rounded-md overflow-hidden" style={{ border: `1px solid ${theme.colors.borderPrimary}` }}>
                   <table className="w-full">
-                    <thead className="bg-gray-50">
+                    <thead style={styles.table.header}>
                       <tr>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Workspace</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Role</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Joined</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium" style={styles.table.headerCell}>Workspace</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium" style={styles.table.headerCell}>Role</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium" style={styles.table.headerCell}>Joined</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody style={styles.table.body}>
                       {userDetails.workspaces.map((ws) => (
-                        <tr key={ws.workspace_id}>
-                          <td className="px-4 py-2 text-sm text-gray-900">{ws.workspace_name}</td>
+                        <tr key={ws.workspace_id} style={styles.table.row}>
+                          <td className="px-4 py-2 text-sm" style={styles.table.cell}>{ws.workspace_name}</td>
                           <td className="px-4 py-2">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getRoleBadgeColor(ws.role)}`}>
+                            <span
+                              className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                              style={getRoleBadgeStyles(ws.role, theme)}
+                            >
                               {ws.role}
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-sm text-gray-500">{formatDate(ws.joined_at)}</td>
+                          <td className="px-4 py-2 text-sm" style={styles.table.cellSecondary}>{formatDate(ws.joined_at)}</td>
                         </tr>
                       ))}
                     </tbody>

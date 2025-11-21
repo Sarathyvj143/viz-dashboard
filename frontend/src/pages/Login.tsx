@@ -2,10 +2,12 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
+import { XCircleIcon } from '@heroicons/react/24/solid';
 import { useAuthStore } from '../store/authStore';
 import { loginSchema, LoginFormData } from '../utils/validators';
 import Input from '../components/common/Input';
 import Button from '../components/common/Button';
+import { ThemedIcon } from '../utils/iconColors';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -90,9 +92,7 @@ export default function Login() {
                   className="p-4 bg-red-50 border border-red-200 rounded-xl animate-shake"
                 >
                   <div className="flex items-center">
-                    <svg className="w-5 h-5 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
+                    <ThemedIcon Icon={XCircleIcon} variant="error" className="w-5 h-5 mr-2" />
                     <p className="text-sm text-red-800">{errors.root.message}</p>
                   </div>
                 </div>

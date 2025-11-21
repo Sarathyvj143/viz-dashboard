@@ -3,6 +3,7 @@ export interface User {
   username: string;
   email: string;
   role: UserRole;
+  current_workspace_id?: number;
   createdAt: string;
   updatedAt: string;
 }

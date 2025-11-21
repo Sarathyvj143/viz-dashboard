@@ -1,4 +1,6 @@
 import { ReactNode } from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 interface CardProps {
   title?: string;
@@ -8,18 +10,21 @@ interface CardProps {
 }
 
 export default function Card({ title, children, className = '', footer }: CardProps) {
+  const { theme } = useTheme();
+  const styles = useThemedStyles();
+
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden ${className}`}>
+    <div className={`rounded-lg shadow-md overflow-hidden ${className}`} style={{ backgroundColor: theme.colors.bgPrimary }}>
       {title && (
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
+        <div className="px-6 py-4" style={styles.borderBottom()}>
+          <h3 className="text-lg font-semibold" style={styles.heading.primary}>{title}</h3>
         </div>
       )}
       <div className="px-6 py-4">
         {children}
       </div>
       {footer && (
-        <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+        <div className="px-6 py-4" style={{ backgroundColor: theme.colors.bgSecondary, ...styles.borderTop() }}>
           {footer}
         </div>
       )}

@@ -1,4 +1,6 @@
 import { ButtonHTMLAttributes } from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
+import { withOpacity } from '../../utils/colorHelpers';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger';
@@ -10,15 +12,12 @@ export default function Button({
   size = 'md',
   className = '',
   children,
+  disabled,
   ...props
 }: ButtonProps) {
-  const baseStyles = 'font-medium rounded focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors';
+  const { theme } = useTheme();
 
-  const variantStyles = {
-    primary: 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white focus:ring-blue-500',
-    secondary: 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-gray-500',
-    danger: 'bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white focus:ring-red-500',
-  };
+  const baseStyles = 'font-medium rounded focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors';
 
   const sizeStyles = {
     sm: 'px-3 py-1.5 text-sm',
@@ -26,9 +25,51 @@ export default function Button({
     lg: 'px-6 py-3 text-lg',
   };
 
+  // Theme-aware button styles
+  const getButtonStyles = () => {
+    if (disabled) {
+      return {
+        backgroundColor: withOpacity(theme.colors.textSecondary, 30),
+        color: theme.colors.textSecondary,
+        cursor: 'not-allowed',
+        opacity: 0.6,
+      };
+    }
+
+    switch (variant) {
+      case 'primary':
+        return {
+          backgroundColor: theme.colors.accentPrimary,
+          color: '#ffffff',
+          borderColor: theme.colors.accentPrimary,
+        };
+      case 'secondary':
+        return {
+          backgroundColor: theme.colors.bgSecondary,
+          color: theme.colors.textPrimary,
+          borderColor: theme.colors.borderPrimary,
+          borderWidth: '1px',
+          borderStyle: 'solid' as const,
+        };
+      case 'danger':
+        return {
+          backgroundColor: theme.colors.error,
+          color: '#ffffff',
+          borderColor: theme.colors.error,
+        };
+      default:
+        return {
+          backgroundColor: theme.colors.accentPrimary,
+          color: '#ffffff',
+        };
+    }
+  };
+
   return (
     <button
-      className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+      className={`${baseStyles} ${sizeStyles[size]} ${className}`}
+      style={getButtonStyles()}
+      disabled={disabled}
       {...props}
     >
       {children}

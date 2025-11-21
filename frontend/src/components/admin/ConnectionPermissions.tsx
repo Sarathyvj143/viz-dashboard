@@ -3,10 +3,16 @@ import { connectionPermissionsApi, ConnectionPermission, ConnectionPermissionCre
 import { usersApi, UserListItem } from '../../api/users';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
-import { PlusIcon, TrashIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
-import { formatDate, getPermissionBadgeColor } from '../../utils/uiHelpers';
+import Alert from '../common/Alert';
+import Icon from '../common/Icon';
+import Dropdown from '../common/Dropdown';
+import { PlusIcon, TrashIcon, ShieldCheckIcon, UserIcon } from '@heroicons/react/24/outline';
+import { formatDate } from '../../utils/uiHelpers';
 import { getApiErrorMessage } from '../../utils/errorHandling';
 import { UI_CONFIG } from '../../constants/ui';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
+import { PERMISSION_LEVEL_OPTIONS } from '../../constants/dropdownOptions';
 
 interface ConnectionPermissionsProps {
   connectionId: number;
@@ -14,6 +20,8 @@ interface ConnectionPermissionsProps {
 }
 
 export default function ConnectionPermissions({ connectionId, connectionName }: ConnectionPermissionsProps) {
+  const { theme } = useTheme();
+  const styles = useThemedStyles();
   const [permissions, setPermissions] = useState<ConnectionPermission[]>([]);
   const [availableUsers, setAvailableUsers] = useState<UserListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,13 +117,13 @@ export default function ConnectionPermissions({ connectionId, connectionName }: 
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md">
+    <div className="rounded-lg shadow-md" style={{ backgroundColor: theme.colors.bgPrimary }}>
       {/* Header */}
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-6" style={styles.borderBottom()}>
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center gap-3">
-            <ShieldCheckIcon className="w-6 h-6 text-gray-600" />
-            <h2 className="text-2xl font-semibold text-gray-900">Connection Permissions</h2>
+            <Icon Icon={ShieldCheckIcon} variant="secondary" size="lg" />
+            <h2 style={styles.typography.h2}>Connection Permissions</h2>
           </div>
           <Button
             variant="primary"
@@ -126,29 +134,29 @@ export default function ConnectionPermissions({ connectionId, connectionName }: 
             Grant Permission
           </Button>
         </div>
-        <p className="text-sm text-gray-600">
+        <p style={styles.typography.smallSecondary}>
           Manage user access to connection: <span className="font-medium">{connectionName}</span>
         </p>
       </div>
 
       {/* Success Message */}
       {successMessage && (
-        <div className="mx-6 mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
-          <p className="text-green-800">{successMessage}</p>
+        <div className="mx-6 mt-4">
+          <Alert type="success" message={successMessage} dismissible onClose={() => setSuccessMessage(null)} />
         </div>
       )}
 
       {/* Error Display */}
       {error && (
-        <div className="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-red-800">{error}</p>
+        <div className="mx-6 mt-4">
+          <Alert type="error" message={error} dismissible onClose={() => setError(null)} />
         </div>
       )}
 
       {/* Permission Levels Info */}
-      <div className="mx-6 mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
-        <p className="text-sm font-medium text-blue-900 mb-2">Permission Levels:</p>
-        <ul className="text-sm text-blue-800 space-y-1">
+      <div className="mx-6 mt-4 p-4 rounded-md" style={styles.statusBox('info')}>
+        <p className="text-sm font-medium mb-2" style={styles.text.info}>Permission Levels:</p>
+        <ul className="text-sm space-y-1" style={styles.text.info}>
           <li><span className="font-medium">Owner:</span> Can manage permissions, edit connection, and view data</li>
           <li><span className="font-medium">Editor:</span> Can edit connection and view data</li>
           <li><span className="font-medium">Viewer:</span> Can only view connection and data</li>
@@ -165,44 +173,39 @@ export default function ConnectionPermissions({ connectionId, connectionName }: 
           </div>
         ) : (
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead style={styles.table.header}>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={styles.table.headerCell}>
                   User
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={styles.table.headerCell}>
                   Permission Level
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={styles.table.headerCell}>
                   Granted By
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={styles.table.headerCell}>
                   Granted At
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={styles.table.headerCell}>
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody style={styles.table.body}>
               {permissions.map((permission) => (
-                <tr key={permission.id} className="hover:bg-gray-50">
+                <tr key={permission.id} style={styles.table.row}>
                   <td className="px-6 py-4 text-sm text-gray-900">
                     {getUserName(permission.user_id)}
                   </td>
                   <td className="px-6 py-4">
-                    <select
-                      className={`px-3 py-1 rounded-full text-xs font-medium border-0 ${getPermissionBadgeColor(permission.permission_level)}`}
-                      value={permission.permission_level}
-                      onChange={(e) => handleUpdatePermission(
-                        permission.user_id,
-                        e.target.value as 'owner' | 'editor' | 'viewer'
-                      )}
-                    >
-                      <option value="owner">Owner</option>
-                      <option value="editor">Editor</option>
-                      <option value="viewer">Viewer</option>
-                    </select>
+                    <div className="w-48">
+                      <Dropdown
+                        options={PERMISSION_LEVEL_OPTIONS}
+                        value={permission.permission_level}
+                        onChange={(value) => value && handleUpdatePermission(permission.user_id, value)}
+                      />
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
                     {getUserName(permission.granted_by)}
@@ -233,41 +236,31 @@ export default function ConnectionPermissions({ connectionId, connectionName }: 
         title="Grant Connection Permission"
       >
         <form onSubmit={handleGrantPermission} className="space-y-4">
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
-            <p className="text-sm text-blue-800">
+          <div className="p-4 rounded-md" style={styles.statusBox('info')}>
+            <p className="text-sm" style={styles.text.info}>
               Grant access to this connection to a specific user. The user must be a member of the current workspace.
             </p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">User</label>
-            <select
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={grantFormData.user_id}
-              onChange={(e) => setGrantFormData({ ...grantFormData, user_id: parseInt(e.target.value) })}
-              required
-            >
-              <option value={0}>Select a user...</option>
-              {getAvailableUsersForGrant().map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.username} ({user.email})
-                </option>
-              ))}
-            </select>
-          </div>
+          <Dropdown
+            label="User"
+            options={getAvailableUsersForGrant().map(user => ({
+              value: user.id,
+              label: `${user.username} (${user.email})`,
+              icon: UserIcon
+            }))}
+            value={grantFormData.user_id === 0 ? undefined : grantFormData.user_id}
+            onChange={(value) => setGrantFormData({ ...grantFormData, user_id: value || 0 })}
+            placeholder="Select a user..."
+            searchable
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Permission Level</label>
-            <select
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={grantFormData.permission_level}
-              onChange={(e) => setGrantFormData({ ...grantFormData, permission_level: e.target.value as 'owner' | 'editor' | 'viewer' })}
-            >
-              <option value="viewer">Viewer - Can view connection and data</option>
-              <option value="editor">Editor - Can edit and view</option>
-              <option value="owner">Owner - Full access including permission management</option>
-            </select>
-          </div>
+          <Dropdown
+            label="Permission Level"
+            options={PERMISSION_LEVEL_OPTIONS}
+            value={grantFormData.permission_level}
+            onChange={(value) => setGrantFormData({ ...grantFormData, permission_level: value ?? 'viewer' })}
+          />
 
           <div className="flex gap-2 justify-end pt-4">
             <Button variant="secondary" type="button" onClick={() => setIsGrantModalOpen(false)}>

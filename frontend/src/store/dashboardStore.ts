@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Dashboard } from '../types/dashboard';
+import { Dashboard, DashboardCreate } from '../types/dashboard';
 import { dashboardsApi } from '../api/dashboards';
 
 interface DashboardStore {
@@ -9,7 +9,7 @@ interface DashboardStore {
   error: string | null;
   fetchDashboards: () => Promise<void>;
   fetchDashboard: (id: number) => Promise<void>;
-  createDashboard: (data: Partial<Dashboard>) => Promise<Dashboard>;
+  createDashboard: (data: DashboardCreate) => Promise<Dashboard>;
   updateDashboard: (id: number, data: Partial<Dashboard>) => Promise<void>;
   deleteDashboard: (id: number) => Promise<void>;
   fetchPublicDashboard: (shareToken: string) => Promise<void>;

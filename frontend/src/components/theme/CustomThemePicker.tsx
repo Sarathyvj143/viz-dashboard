@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import { ThemeColors, ThemeName } from '../../types/theme';
 import { themes } from '../../constants/themes';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import Button from '../common/Button';
 import Card from '../common/Card';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -51,6 +52,7 @@ interface CustomThemePickerProps {
 }
 
 export default function CustomThemePicker({ onClose }: CustomThemePickerProps) {
+  const styles = useThemedStyles();
   const { theme, setTheme } = useTheme();
   const { showToast } = useToastStore();
 
@@ -111,7 +113,7 @@ export default function CustomThemePicker({ onClose }: CustomThemePickerProps) {
     <div className="space-y-6">
       {/* Header */}
       <div className="border-b border-gray-200 dark:border-gray-700 pb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <h3 className="text-lg font-semibold" style={styles.heading.primary}>
           Create Custom Theme
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -167,7 +169,7 @@ export default function CustomThemePicker({ onClose }: CustomThemePickerProps) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Background Colors */}
         <Card className="p-4">
-          <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+          <h4 className="text-sm font-semibold mb-3" style={styles.heading.primary}>
             Background Colors
           </h4>
           <div className="space-y-3">
@@ -194,7 +196,7 @@ export default function CustomThemePicker({ onClose }: CustomThemePickerProps) {
 
         {/* Text Colors */}
         <Card className="p-4">
-          <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+          <h4 className="text-sm font-semibold mb-3" style={styles.heading.primary}>
             Text Colors
           </h4>
           <div className="space-y-3">
@@ -221,7 +223,7 @@ export default function CustomThemePicker({ onClose }: CustomThemePickerProps) {
 
         {/* Accent Colors */}
         <Card className="p-4">
-          <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+          <h4 className="text-sm font-semibold mb-3" style={styles.heading.primary}>
             Accent Colors
           </h4>
           <div className="space-y-3">
@@ -242,7 +244,7 @@ export default function CustomThemePicker({ onClose }: CustomThemePickerProps) {
 
         {/* Border Colors */}
         <Card className="p-4">
-          <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+          <h4 className="text-sm font-semibold mb-3" style={styles.heading.primary}>
             Border Colors
           </h4>
           <div className="space-y-3">
@@ -263,7 +265,7 @@ export default function CustomThemePicker({ onClose }: CustomThemePickerProps) {
 
         {/* Status Colors */}
         <Card className="p-4 lg:col-span-2">
-          <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+          <h4 className="text-sm font-semibold mb-3" style={styles.heading.primary}>
             Status Colors
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -297,7 +299,7 @@ export default function CustomThemePicker({ onClose }: CustomThemePickerProps) {
 
       {/* Preview */}
       <Card className="p-4">
-        <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+        <h4 className="text-sm font-semibold mb-3" style={styles.heading.primary}>
           Preview
         </h4>
         <div

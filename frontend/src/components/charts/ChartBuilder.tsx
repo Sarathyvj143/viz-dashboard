@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useChartStore } from '../../store/chartStore';
 import { useToastStore } from '../../store/toastStore';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { getDefaultChartColors } from '../../constants/themes';
 import { dataSourcesApi } from '../../api/dataSources';
 import { connectionsApi } from '../../api/connections';
@@ -11,13 +12,11 @@ import { Connection } from '../../types/connection';
 import { ChartType } from '../../types/chart';
 import Button from '../common/Button';
 import Input from '../common/Input';
-import Textarea from '../common/Textarea';
+import Dropdown from '../common/Dropdown';
 import Spinner from '../common/Spinner';
-import FormSection from '../common/FormSection';
 import DataSourceQuickCreate from '../dataSources/DataSourceQuickCreate';
 import {
   PlusIcon,
-  ChevronDownIcon,
   ChevronUpIcon,
   MagnifyingGlassIcon,
   ServerIcon,
@@ -28,6 +27,7 @@ import {
 
 export default function ChartBuilder() {
   const navigate = useNavigate();
+  const styles = useThemedStyles();
   const { createChart, isLoading } = useChartStore();
   const { showToast } = useToastStore();
   const { currentTheme, customColors } = useTheme();
@@ -185,8 +185,8 @@ export default function ChartBuilder() {
       await createChart({
         name: formData.name,
         description: formData.description,
-        chart_type: formData.chart_type,
-        data_source_id: formData.data_source_id,
+        type: formData.chart_type,
+        dataSourceId: formData.data_source_id.toString(),
         query: formData.query,
         config: formData.config,
       });
@@ -211,7 +211,7 @@ export default function ChartBuilder() {
         {/* Basic Information Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+            <h3 className="text-lg font-semibold flex items-center" style={styles.heading.primary}>
               <span className="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center mr-3 text-sm">1</span>
               Basic Information
             </h3>
@@ -251,7 +251,7 @@ export default function ChartBuilder() {
         {/* Chart Type Selection Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+            <h3 className="text-lg font-semibold flex items-center" style={styles.heading.primary}>
               <span className="w-8 h-8 rounded-lg bg-purple-500 text-white flex items-center justify-center mr-3 text-sm">2</span>
               Chart Type
             </h3>
@@ -281,7 +281,7 @@ export default function ChartBuilder() {
         {/* Data Source Mode Selection */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-gradient-to-r from-teal-50 to-cyan-50 px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+            <h3 className="text-lg font-semibold flex items-center" style={styles.heading.primary}>
               <span className="w-8 h-8 rounded-lg bg-teal-500 text-white flex items-center justify-center mr-3 text-sm">3</span>
               Data Source Mode
             </h3>
@@ -323,7 +323,7 @@ export default function ChartBuilder() {
         {dataSourceMode === 'connection' && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <h3 className="text-lg font-semibold flex items-center" style={styles.heading.primary}>
                 <span className="w-8 h-8 rounded-lg bg-green-500 text-white flex items-center justify-center mr-3 text-sm">4</span>
                 Connection & Table
               </h3>
@@ -332,36 +332,31 @@ export default function ChartBuilder() {
             <div className="p-6 space-y-5">
               {/* Connection Selection */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Select Connection *
-                </label>
                 {connections.length === 0 ? (
                   <div className="text-sm text-gray-700 p-5 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
                     <p className="font-semibold mb-1">No database connections available</p>
                     <p className="text-gray-600">Create a database connection first from the Connections page.</p>
                   </div>
                 ) : (
-                  <select
-                    value={selectedConnectionId}
-                    onChange={(e) => setSelectedConnectionId(parseInt(e.target.value))}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    required
-                  >
-                    {connections.map((conn) => (
-                      <option key={conn.id} value={conn.id}>
-                        {conn.name} ({conn.type})
-                      </option>
-                    ))}
-                  </select>
+                  <Dropdown
+                    label="Select Connection *"
+                    options={connections.map(conn => ({
+                      value: conn.id,
+                      label: `${conn.name} (${conn.type})`,
+                      icon: ServerIcon,
+                      badge: conn.type
+                    }))}
+                    value={selectedConnectionId || undefined}
+                    onChange={(value) => setSelectedConnectionId(value || 0)}
+                    searchable
+                    placeholder="Choose a connection..."
+                  />
                 )}
               </div>
 
               {/* Table Selection */}
               {selectedConnectionId > 0 && (
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Select Table *
-                  </label>
                   {loadingTables ? (
                     <div className="text-sm text-gray-600 p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center">
                       <Spinner size="md" color="gray" className="mr-3" />
@@ -373,18 +368,19 @@ export default function ChartBuilder() {
                       <p className="text-gray-600">The selected connection has no accessible tables.</p>
                     </div>
                   ) : (
-                    <select
-                      value={selectedTable}
-                      onChange={(e) => handleTableSelect(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                      required
-                    >
-                      {tables.map((table) => (
-                        <option key={table.name} value={table.name}>
-                          {table.name} ({table.type})
-                        </option>
-                      ))}
-                    </select>
+                    <Dropdown
+                      label="Select Table *"
+                      options={tables.map(table => ({
+                        value: table.name,
+                        label: `${table.name} (${table.type})`,
+                        icon: TableCellsIcon,
+                        badge: table.type
+                      }))}
+                      value={selectedTable || undefined}
+                      onChange={(value) => handleTableSelect(value || '')}
+                      searchable
+                      placeholder="Choose a table..."
+                    />
                   )}
                 </div>
               )}
@@ -398,7 +394,7 @@ export default function ChartBuilder() {
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <h3 className="text-lg font-semibold flex items-center" style={styles.heading.primary}>
                     <span className="w-8 h-8 rounded-lg bg-green-500 text-white flex items-center justify-center mr-3 text-sm">4</span>
                     Data Source
                   </h3>
@@ -494,7 +490,7 @@ export default function ChartBuilder() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between">
-                                <h4 className="text-sm font-bold text-gray-900 truncate">
+                                <h4 className="text-sm font-bold truncate" style={styles.heading.primary}>
                                   {source.name}
                                 </h4>
                                 <span className={`ml-2 px-2.5 py-1 text-xs font-semibold rounded-full ${
@@ -513,10 +509,10 @@ export default function ChartBuilder() {
                               </p>
                               <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-500">
                                 <span className="capitalize font-medium">{source.source_type}</span>
-                                {source.connection && (
+                                {source.connection_id && connections.find(c => c.id === source.connection_id) && (
                                   <>
                                     <span>•</span>
-                                    <span>Connection: {source.connection.name}</span>
+                                    <span>Connection: {connections.find(c => c.id === source.connection_id)?.name}</span>
                                   </>
                                 )}
                               </div>
@@ -549,7 +545,7 @@ export default function ChartBuilder() {
         {/* Query Configuration */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-gradient-to-r from-orange-50 to-amber-50 px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+            <h3 className="text-lg font-semibold flex items-center" style={styles.heading.primary}>
               <span className="w-8 h-8 rounded-lg bg-orange-500 text-white flex items-center justify-center mr-3 text-sm">5</span>
               Query Configuration
             </h3>
@@ -611,7 +607,7 @@ export default function ChartBuilder() {
             </div>
 
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-5">
-              <h4 className="text-sm font-bold text-blue-900 mb-3 flex items-center">
+              <h4 className="text-sm font-bold mb-3 flex items-center" style={{ color: '#1e3a8a' }}>
                 <span className="mr-2">💡</span> Query Examples
               </h4>
               <div className="space-y-3 text-xs text-blue-900">
@@ -635,7 +631,7 @@ export default function ChartBuilder() {
         {/* Chart Configuration Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+            <h3 className="text-lg font-semibold flex items-center" style={styles.heading.primary}>
               <span className="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center mr-3 text-sm">6</span>
               Chart Configuration
             </h3>

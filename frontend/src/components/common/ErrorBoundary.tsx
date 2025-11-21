@@ -1,4 +1,6 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { useTheme } from '../../contexts/ThemeContext';
 import { logger } from '../../utils/logger';
 
 interface Props {
@@ -10,6 +12,119 @@ interface State {
   hasError: boolean;
   error?: Error;
   errorInfo?: ErrorInfo;
+}
+
+// Functional component for themed error fallback
+function ErrorFallback({ error, errorInfo, onReset, onReload }: {
+  error?: Error;
+  errorInfo?: ErrorInfo;
+  onReset: () => void;
+  onReload: () => void;
+}) {
+  const { theme } = useTheme();
+
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{ backgroundColor: theme.colors.bgPrimary }}
+    >
+      <div
+        className="max-w-md w-full rounded-lg shadow-lg p-8"
+        style={{
+          backgroundColor: theme.colors.bgSecondary,
+          borderColor: theme.colors.borderPrimary,
+          borderWidth: '1px',
+          borderStyle: 'solid',
+        }}
+      >
+        <div className="text-center">
+          <div className="flex justify-center mb-4">
+            <ExclamationTriangleIcon
+              className="h-16 w-16"
+              style={{ color: theme.colors.error }}
+            />
+          </div>
+          <h1
+            className="text-2xl font-bold mb-2"
+            style={{ color: theme.colors.textPrimary }}
+          >
+            Something went wrong
+          </h1>
+          <p
+            className="mb-6"
+            style={{ color: theme.colors.textSecondary }}
+          >
+            We're sorry, but something unexpected happened. Please try reloading the page.
+          </p>
+
+          {/* Show error details in development */}
+          {import.meta.env.DEV && error && (
+            <details
+              className="text-left mb-6 p-4 rounded"
+              style={{
+                backgroundColor: `${theme.colors.error}15`,
+                borderColor: theme.colors.error,
+                borderWidth: '1px',
+                borderStyle: 'solid',
+              }}
+            >
+              <summary
+                className="cursor-pointer font-semibold mb-2"
+                style={{ color: theme.colors.error }}
+              >
+                Error Details (Development Only)
+              </summary>
+              <div className="text-sm">
+                <p
+                  className="font-mono mb-2"
+                  style={{ color: theme.colors.error }}
+                >
+                  {error.toString()}
+                </p>
+                {errorInfo && (
+                  <pre
+                    className="text-xs overflow-auto max-h-48 p-2 rounded"
+                    style={{
+                      backgroundColor: `${theme.colors.error}10`,
+                      color: theme.colors.error,
+                    }}
+                  >
+                    {errorInfo.componentStack}
+                  </pre>
+                )}
+              </div>
+            </details>
+          )}
+
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={onReset}
+              className="px-4 py-2 rounded-md transition-opacity hover:opacity-80"
+              style={{
+                backgroundColor: 'transparent',
+                color: theme.colors.textSecondary,
+                borderColor: theme.colors.borderPrimary,
+                borderWidth: '1px',
+                borderStyle: 'solid',
+              }}
+            >
+              Try Again
+            </button>
+            <button
+              onClick={onReload}
+              className="px-4 py-2 rounded-md transition-opacity hover:opacity-80"
+              style={{
+                backgroundColor: theme.colors.accentPrimary,
+                color: theme.colors.bgPrimary,
+              }}
+            >
+              Reload Page
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /**
@@ -41,13 +156,13 @@ class ErrorBoundary extends Component<Props, State> {
     // Example: logErrorToService(error, errorInfo);
   }
 
-  handleReload = () => {
+  handleReload = (): void => {
     // Reset error state and reload the page
     this.setState({ hasError: false, error: undefined, errorInfo: undefined });
     window.location.reload();
   };
 
-  handleReset = () => {
+  handleReset = (): void => {
     // Reset error state without reloading
     this.setState({ hasError: false, error: undefined, errorInfo: undefined });
   };
@@ -59,55 +174,14 @@ class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
-      // Default fallback UI
+      // Default themed fallback UI
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-8">
-            <div className="text-center">
-              <div className="text-6xl mb-4">⚠️</div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                Something went wrong
-              </h1>
-              <p className="text-gray-600 mb-6">
-                We're sorry, but something unexpected happened. Please try reloading the page.
-              </p>
-
-              {/* Show error details in development */}
-              {import.meta.env.DEV && this.state.error && (
-                <details className="text-left mb-6 p-4 bg-red-50 rounded border border-red-200">
-                  <summary className="cursor-pointer font-semibold text-red-800 mb-2">
-                    Error Details (Development Only)
-                  </summary>
-                  <div className="text-sm">
-                    <p className="font-mono text-red-900 mb-2">
-                      {this.state.error.toString()}
-                    </p>
-                    {this.state.errorInfo && (
-                      <pre className="text-xs text-red-800 overflow-auto max-h-48 p-2 bg-red-100 rounded">
-                        {this.state.errorInfo.componentStack}
-                      </pre>
-                    )}
-                  </div>
-                </details>
-              )}
-
-              <div className="flex gap-3 justify-center">
-                <button
-                  onClick={this.handleReset}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
-                >
-                  Try Again
-                </button>
-                <button
-                  onClick={this.handleReload}
-                  className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
-                >
-                  Reload Page
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ErrorFallback
+          error={this.state.error}
+          errorInfo={this.state.errorInfo}
+          onReset={this.handleReset}
+          onReload={this.handleReload}
+        />
       );
     }
 

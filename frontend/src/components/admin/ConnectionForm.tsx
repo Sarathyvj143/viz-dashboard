@@ -3,9 +3,13 @@ import { useConnectionStore } from '../../store/connectionStore';
 import { Connection, ConnectionType, ConnectionConfig } from '../../types/connection';
 import Button from '../common/Button';
 import Input from '../common/Input';
+import Dropdown from '../common/Dropdown';
 import { useToastStore } from '../../store/toastStore';
 import { connectionsApi } from '../../api/connections';
 import { validators, validationMessages } from '../../utils/validation';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
+import { CONNECTION_TYPE_OPTIONS } from '../../constants/dropdownOptions';
 
 interface ConnectionFormProps {
   connection?: Connection | null;
@@ -16,6 +20,8 @@ interface ConnectionFormProps {
 export default function ConnectionForm({ connection, onSuccess, onCancel }: ConnectionFormProps) {
   const { createConnection, updateConnection } = useConnectionStore();
   const { showToast } = useToastStore();
+  const { theme } = useTheme();
+  const styles = useThemedStyles();
 
   const [name, setName] = useState(connection?.name || '');
   const [type, setType] = useState<ConnectionType>(connection?.type || 'mysql');
@@ -209,8 +215,11 @@ export default function ConnectionForm({ connection, onSuccess, onCancel }: Conn
       <Input
         label="Port"
         type="number"
-        value={config.port || ''}
-        onChange={(e) => handleConfigChange('port', parseInt(e.target.value) || undefined)}
+        value={config.port?.toString() || ''}
+        onChange={(e) => {
+          const portValue = e.target.value ? parseInt(e.target.value) : (type === 'mysql' ? 3306 : 5432);
+          handleConfigChange('port', portValue);
+        }}
         placeholder={type === 'mysql' ? '3306' : '5432'}
         required
       />
@@ -242,9 +251,13 @@ export default function ConnectionForm({ connection, onSuccess, onCancel }: Conn
           id="ssl"
           checked={config.ssl || false}
           onChange={(e) => handleConfigChange('ssl', e.target.checked)}
-          className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+          className="h-4 w-4 rounded"
+          style={{
+            color: theme.colors.accentPrimary,
+            borderColor: theme.colors.borderPrimary,
+          }}
         />
-        <label htmlFor="ssl" className="ml-2 text-sm text-gray-700">
+        <label htmlFor="ssl" className="ml-2 text-sm" style={{ color: theme.colors.textPrimary }}>
           Use SSL/TLS connection
         </label>
       </div>
@@ -369,22 +382,13 @@ export default function ConnectionForm({ connection, onSuccess, onCancel }: Conn
       {/* Connection Type */}
       {!connection && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Connection Type
-          </label>
-          <select
+          <Dropdown
+            label="Connection Type"
+            options={CONNECTION_TYPE_OPTIONS}
             value={type}
-            onChange={(e) => handleTypeChange(e.target.value as ConnectionType)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            required
-          >
-            <option value="mysql">MySQL</option>
-            <option value="postgresql">PostgreSQL</option>
-            <option value="s3">AWS S3</option>
-            <option value="azure_blob">Azure Blob Storage</option>
-            <option value="gcs">Google Cloud Storage</option>
-          </select>
-          <p className="mt-1 text-sm text-gray-500">
+            onChange={(value) => value && handleTypeChange(value)}
+          />
+          <p className="mt-1 text-sm" style={{ color: theme.colors.textSecondary }}>
             {type === 'mysql' && 'Connect to MySQL database'}
             {type === 'postgresql' && 'Connect to PostgreSQL database'}
             {type === 's3' && 'Connect to AWS S3 bucket for file storage'}
@@ -399,23 +403,23 @@ export default function ConnectionForm({ connection, onSuccess, onCancel }: Conn
 
       {/* Advanced Options */}
       {(type === 'mysql' || type === 'postgresql') && (
-        <details className="border border-gray-200 rounded-md p-4">
-          <summary className="cursor-pointer font-medium text-gray-700">
+        <details className="rounded-md p-4" style={styles.border.primary}>
+          <summary className="cursor-pointer font-medium" style={styles.text.primary}>
             Advanced Options
           </summary>
           <div className="mt-4 space-y-4">
             <Input
               label="Connection Pool Size"
               type="number"
-              value={config.poolSize || ''}
-              onChange={(e) => handleConfigChange('poolSize', parseInt(e.target.value) || undefined)}
+              value={config.poolSize?.toString() || ''}
+              onChange={(e) => handleConfigChange('poolSize', e.target.value ? parseInt(e.target.value) : 10)}
               placeholder="10"
             />
             <Input
               label="Max Overflow"
               type="number"
-              value={config.maxOverflow || ''}
-              onChange={(e) => handleConfigChange('maxOverflow', parseInt(e.target.value) || undefined)}
+              value={config.maxOverflow?.toString() || ''}
+              onChange={(e) => handleConfigChange('maxOverflow', e.target.value ? parseInt(e.target.value) : 5)}
               placeholder="5"
             />
           </div>
@@ -423,7 +427,7 @@ export default function ConnectionForm({ connection, onSuccess, onCancel }: Conn
       )}
 
       {/* Test Credentials Section */}
-      <div className="border-t border-gray-200 pt-4">
+      <div className="pt-4" style={styles.borderTop()}>
         <Button
           type="button"
           variant="secondary"
@@ -434,17 +438,10 @@ export default function ConnectionForm({ connection, onSuccess, onCancel }: Conn
         </Button>
 
         {testResult && (
-          <div
-            className={`mt-3 p-3 rounded-md ${
-              testResult.success
-                ? 'bg-green-50 border border-green-200'
-                : 'bg-red-50 border border-red-200'
-            }`}
-          >
+          <div className="mt-3 p-3 rounded-md" style={styles.statusBox(testResult.success ? 'success' : 'error')}>
             <p
-              className={`text-sm font-medium ${
-                testResult.success ? 'text-green-800' : 'text-red-800'
-              }`}
+              className="text-sm font-medium"
+              style={testResult.success ? styles.text.success : styles.text.error}
             >
               {testResult.success ? '✓ ' : '✗ '}
               {testResult.message}
@@ -456,7 +453,7 @@ export default function ConnectionForm({ connection, onSuccess, onCancel }: Conn
       {/* Action Buttons */}
       <div className="flex flex-col gap-2 pt-4">
         {!hasBeenTested && !connection && (
-          <p className="text-sm text-amber-600 flex items-center gap-1">
+          <p className="text-sm flex items-center gap-1" style={styles.text.warning}>
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>

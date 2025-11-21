@@ -8,7 +8,6 @@ import ToastContainer from './components/common/ToastContainer';
 import Login from './pages/Login';
 import DashboardList from './pages/DashboardList';
 import DashboardDetail from './pages/DashboardDetail';
-import Dashboard from './pages/Dashboard';
 import ChartList from './pages/ChartList';
 import ChartDetail from './pages/ChartDetail';
 import ChartCreate from './pages/ChartCreate';

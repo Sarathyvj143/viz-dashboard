@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
 import { useChartStore } from '../../store/chartStore';
-import { Chart } from '../../types/chart';
 import DataSourceQuickCreate from '../dataSources/DataSourceQuickCreate';
 import { ChevronDownIcon, ChevronUpIcon, ChartBarIcon } from '@heroicons/react/24/outline';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useThemedHover } from '../../hooks/useThemedHover';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
+import { withOpacity } from '../../utils/colorHelpers';
 
 interface WidgetConfigModalProps {
   isOpen: boolean;
@@ -20,9 +23,16 @@ export default function WidgetConfigModal({
   currentChartId,
 }: WidgetConfigModalProps) {
   const { charts, isLoading, fetchCharts } = useChartStore();
+  const { theme } = useTheme();
+  const styles = useThemedStyles();
   const [selectedChartId, setSelectedChartId] = useState<string | null>(currentChartId || null);
   const [showQuickCreate, setShowQuickCreate] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Memoized hover handler for toggle button
+  const toggleButtonHover = useThemedHover({
+    hoverOpacity: 0.8,
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -48,9 +58,15 @@ export default function WidgetConfigModal({
     setShowQuickCreate(false);
   };
 
-  const filteredCharts = charts.filter((chart) =>
-    chart.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    chart.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  // Memoize filtered charts to prevent recalculation on every render
+  const filteredCharts = useMemo(
+    () =>
+      (charts || []).filter(
+        (chart) =>
+          chart.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          chart.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    [charts, searchTerm]
   );
 
   return (
@@ -61,11 +77,13 @@ export default function WidgetConfigModal({
     >
       <div className="space-y-4">
         {/* Quick Create Data Source Section */}
-        <div className="border-b pb-4">
+        <div className="pb-4" style={styles.borderBottom()}>
           <button
             type="button"
             onClick={() => setShowQuickCreate(!showQuickCreate)}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center w-full"
+            className="text-sm font-medium flex items-center w-full"
+            style={styles.text.accent}
+            {...toggleButtonHover}
           >
             {showQuickCreate ? (
               <>
@@ -81,7 +99,7 @@ export default function WidgetConfigModal({
           </button>
 
           {showQuickCreate && (
-            <div className="mt-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="mt-3 p-4 rounded-lg" style={styles.statusBox('info')}>
               <DataSourceQuickCreate
                 embedded={true}
                 onCreated={handleDataSourceCreated}
@@ -93,20 +111,27 @@ export default function WidgetConfigModal({
 
         {/* Chart Selection */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium mb-2" style={styles.text.primary}>
             Select Chart *
           </label>
 
           {isLoading ? (
-            <div className="flex items-center justify-center p-8 bg-gray-50 rounded-md">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-2"></div>
-              <span className="text-sm text-gray-600">Loading charts...</span>
+            <div className="flex items-center justify-center p-8 rounded-md" style={styles.bg.tertiary}>
+              <div
+                className="animate-spin rounded-full h-6 w-6 mr-2"
+                style={{
+                  borderBottomColor: theme.colors.accentPrimary,
+                  borderBottomWidth: '2px',
+                  borderBottomStyle: 'solid',
+                }}
+              ></div>
+              <span className="text-sm" style={styles.text.secondary}>Loading charts...</span>
             </div>
-          ) : charts.length === 0 ? (
-            <div className="text-center py-8 px-4 bg-yellow-50 border border-yellow-200 rounded-md">
-              <ChartBarIcon className="mx-auto h-12 w-12 text-yellow-600 mb-2" />
-              <p className="text-sm text-yellow-900 font-medium mb-1">No Charts Available</p>
-              <p className="text-xs text-yellow-800 mb-3">
+          ) : (charts || []).length === 0 ? (
+            <div className="text-center py-8 px-4 rounded-md" style={styles.statusBox('warning')}>
+              <ChartBarIcon className="mx-auto h-12 w-12 mb-2" style={styles.text.warning} />
+              <p className="text-sm font-medium mb-1" style={styles.text.warning}>No Charts Available</p>
+              <p className="text-xs mb-3" style={styles.text.warning}>
                 Create charts first to add them to your dashboard
               </p>
               <Button size="sm" onClick={() => window.open('/charts/new', '_blank')}>
@@ -121,58 +146,42 @@ export default function WidgetConfigModal({
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search charts..."
-                className="w-full mb-3 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full mb-3 px-3 py-2 rounded-md focus:outline-none"
+                style={styles.input}
               />
 
               {/* Chart List */}
-              <div className="max-h-80 overflow-y-auto space-y-2 border border-gray-200 rounded-md p-2 bg-gray-50">
+              <div className="max-h-80 overflow-y-auto space-y-2 rounded-md p-2" style={{ ...styles.bg.tertiary, ...styles.border.primary }}>
                 {filteredCharts.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500 text-sm">
+                  <div className="text-center py-8 text-sm" style={styles.text.secondary}>
                     No charts match your search
                   </div>
                 ) : (
-                  filteredCharts.map((chart) => (
-                    <button
-                      key={chart.id}
-                      type="button"
-                      onClick={() => setSelectedChartId(chart.id)}
-                      className={`w-full text-left p-3 rounded-md border-2 transition-all duration-200 ${
-                        selectedChartId === chart.id
-                          ? 'border-blue-500 bg-blue-50 scale-[1.02] shadow-md'
-                          : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50 hover:scale-[1.01] hover:shadow-sm'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-semibold text-gray-900 truncate">
-                            {chart.name}
-                          </h4>
-                          {chart.description && (
-                            <p className="text-xs text-gray-600 mt-1 line-clamp-2">
-                              {chart.description}
-                            </p>
-                          )}
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full">
-                              {chart.type}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </button>
-                  ))
+                  filteredCharts.map((chart) => {
+                    const isSelected = selectedChartId === chart.id;
+                    return (
+                      <ChartButton
+                        key={chart.id}
+                        chart={chart}
+                        isSelected={isSelected}
+                        onSelect={setSelectedChartId}
+                        theme={theme}
+                        styles={styles}
+                      />
+                    );
+                  })
                 )}
               </div>
 
-              <p className="text-xs text-gray-500 mt-2">
-                {filteredCharts.length} of {charts.length} chart{charts.length !== 1 ? 's' : ''} shown
+              <p className="text-xs mt-2" style={styles.text.secondary}>
+                {filteredCharts.length} of {(charts || []).length} chart{(charts || []).length !== 1 ? 's' : ''} shown
               </p>
             </>
           )}
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-2 pt-4 border-t">
+        <div className="flex justify-end gap-2 pt-4" style={styles.borderTop()}>
           <Button
             type="button"
             variant="secondary"
@@ -190,5 +199,56 @@ export default function WidgetConfigModal({
         </div>
       </div>
     </Modal>
+  );
+}
+
+// Memoized chart button component for better performance
+interface ChartButtonProps {
+  chart: { id: string; name: string; description?: string; type: string };
+  isSelected: boolean;
+  onSelect: (id: string) => void;
+  theme: { colors: { accentPrimary: string; bgSecondary: string; bgTertiary: string; borderPrimary: string; textPrimary: string; textSecondary: string } };
+  styles: ReturnType<typeof useThemedStyles>;
+}
+
+function ChartButton({ chart, isSelected, onSelect, theme, styles }: ChartButtonProps) {
+  const chartButtonHover = useThemedHover({
+    hoverBg: theme.colors.bgTertiary,
+    normalBg: theme.colors.bgSecondary,
+    condition: !isSelected,
+  });
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(chart.id)}
+      className="w-full text-left p-3 rounded-md transition-all duration-200"
+      style={{
+        backgroundColor: isSelected ? withOpacity(theme.colors.accentPrimary, 20) : theme.colors.bgSecondary,
+        borderColor: isSelected ? theme.colors.accentPrimary : theme.colors.borderPrimary,
+        borderWidth: '2px',
+        borderStyle: 'solid',
+        transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+      }}
+      {...(!isSelected ? chartButtonHover : {})}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex-1 min-w-0">
+          <h4 className="text-sm font-semibold truncate" style={styles.text.primary}>
+            {chart.name}
+          </h4>
+          {chart.description && (
+            <p className="text-xs mt-1 line-clamp-2" style={styles.text.secondary}>
+              {chart.description}
+            </p>
+          )}
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-xs px-2 py-0.5 rounded-full" style={styles.bg.tertiary}>
+              <span style={styles.text.secondary}>{chart.type}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </button>
   );
 }

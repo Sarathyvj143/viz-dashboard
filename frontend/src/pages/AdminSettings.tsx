@@ -1,7 +1,9 @@
+import { useThemedStyles } from '../hooks/useThemedStyles';
 import Header from '../components/layout/Header';
 import ThemeSelector from '../components/theme/ThemeSelector';
 
 export default function AdminSettings() {
+  const styles = useThemedStyles();
   return (
     <div>
       <Header
@@ -16,7 +18,7 @@ export default function AdminSettings() {
 
         {/* Additional settings sections can be added here */}
         <section className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          <h3 className="text-lg font-semibold mb-2" style={styles.heading.primary}>
             Other Settings
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400">

@@ -1,21 +1,22 @@
-import { InputHTMLAttributes, forwardRef } from 'react';
+import { SelectHTMLAttributes, forwardRef } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
 }
 
-const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, className = '', ...props }, ref) => {
+const Select = forwardRef<HTMLSelectElement, SelectProps>(
+  ({ label, error, className = '', children, ...props }, ref) => {
     const { theme } = useTheme();
 
-    const inputStyles = {
+    const selectStyles = {
       backgroundColor: theme.colors.bgPrimary,
       color: theme.colors.textPrimary,
       borderColor: error ? theme.colors.error : theme.colors.borderPrimary,
       borderWidth: '1px',
       borderStyle: 'solid' as const,
+      outlineColor: theme.colors.accentPrimary,
     };
 
     const labelStyles = {
@@ -36,15 +37,14 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             {label}
           </label>
         )}
-        <input
+        <select
           ref={ref}
-          className={`w-full px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 ${className}`}
-          style={{
-            ...inputStyles,
-            outlineColor: theme.colors.accentPrimary,
-          }}
+          className={`w-full px-4 py-2 rounded-md focus:outline-none focus:ring-2 ${className}`}
+          style={selectStyles}
           {...props}
-        />
+        >
+          {children}
+        </select>
         {error && (
           <p className="mt-1 text-sm" style={errorStyles}>
             {error}
@@ -55,6 +55,6 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
   }
 );
 
-Input.displayName = 'Input';
+Select.displayName = 'Select';
 
-export default Input;
+export default Select;

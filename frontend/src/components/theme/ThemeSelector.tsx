@@ -4,6 +4,7 @@
  */
 import { useState } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { ThemeName } from '../../types/theme';
 import { themes } from '../../constants/themes';
 import { CheckIcon, SunIcon, MoonIcon, SparklesIcon, ComputerDesktopIcon, PaintBrushIcon } from '@heroicons/react/24/outline';
@@ -13,6 +14,7 @@ import Modal from '../common/Modal';
 import CustomThemePicker from './CustomThemePicker';
 
 export default function ThemeSelector() {
+  const styles = useThemedStyles();
   const { currentTheme, setTheme, isLoading, theme } = useTheme();
   const [changing, setChanging] = useState(false);
   const [showCustomPicker, setShowCustomPicker] = useState(false);
@@ -57,7 +59,7 @@ export default function ThemeSelector() {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Theme Preference</h3>
+        <h3 className="text-lg font-semibold mb-2" style={styles.heading.primary}>Theme Preference</h3>
         <p className="text-sm text-gray-600 dark:text-gray-400">
           Choose your preferred theme for the application
         </p>
@@ -102,7 +104,7 @@ export default function ThemeSelector() {
                   {getThemeIcon(themeName)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                  <h4 className="font-semibold mb-1" style={styles.heading.primary}>
                     {themeData.displayName}
                   </h4>
                   <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
@@ -171,7 +173,7 @@ export default function ThemeSelector() {
               <PaintBrushIcon className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+              <h4 className="font-semibold mb-1" style={styles.heading.primary}>
                 Custom
               </h4>
               <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">

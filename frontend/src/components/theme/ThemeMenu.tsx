@@ -2,9 +2,10 @@
  * Compact Theme Menu Component
  * Quick theme switcher for navigation menu
  */
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useClickOutside } from '../../hooks/useClickOutside';
 import { ThemeName } from '../../types/theme';
 import { themes } from '../../constants/themes';
 import {
@@ -54,21 +55,7 @@ export default function ThemeMenu({ isCollapsed = false }: ThemeMenuProps) {
   };
 
   // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen]);
+  useClickOutside(menuRef, () => setIsOpen(false), isOpen);
 
   if (isCollapsed) {
     return (

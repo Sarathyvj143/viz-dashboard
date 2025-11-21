@@ -6,7 +6,8 @@ import { Connection } from '../../types/connection';
 import { DiscoveredItem } from '../../types/dataSource';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
-import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import Dropdown from '../common/Dropdown';
+import { PlusIcon, MagnifyingGlassIcon, ServerIcon } from '@heroicons/react/24/outline';
 
 interface DataSourceQuickCreateProps {
   onCreated?: (dataSourceId: number) => void;
@@ -160,25 +161,22 @@ export default function DataSourceQuickCreate({ onCreated, onCancel, embedded = 
       <FormWrapper {...formProps} className="space-y-4">
         {/* Connection Selection */}
         <div>
-          <label htmlFor="connection" className="block text-sm font-medium text-gray-700 mb-1">
-            Connection *
-          </label>
-          <select
-            id="connection"
-            value={selectedConnection?.id || ''}
-            onChange={(e) => {
-              const conn = connections.find((c) => c.id === parseInt(e.target.value));
+          <Dropdown
+            label="Connection *"
+            options={connections.map(conn => ({
+              value: conn.id,
+              label: `${conn.name} (${conn.type})`,
+              icon: ServerIcon,
+              badge: conn.type
+            }))}
+            value={selectedConnection?.id}
+            onChange={(value) => {
+              const conn = connections.find((c) => c.id === value);
               setSelectedConnection(conn || null);
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 hover:border-blue-400"
-            required
-          >
-            {connections.map((conn) => (
-              <option key={conn.id} value={conn.id}>
-                {conn.name} ({conn.type})
-              </option>
-            ))}
-          </select>
+            placeholder="Choose a connection..."
+            searchable
+          />
           <p className="mt-1 text-xs text-gray-500">
             Select the connection to create a data source from
           </p>

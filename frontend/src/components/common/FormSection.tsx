@@ -1,40 +1,79 @@
+import { useTheme } from '../../contexts/ThemeContext';
+import { withOpacity } from '../../utils/colorHelpers';
+
 interface FormSectionProps {
   number: number;
   title: string;
   description: string;
   children: React.ReactNode;
-  colorScheme?: 'blue' | 'purple' | 'green' | 'orange' | 'indigo';
 }
-
-const colorSchemes = {
-  blue: { gradient: 'from-blue-50 to-indigo-50', badge: 'bg-blue-500' },
-  purple: { gradient: 'from-purple-50 to-pink-50', badge: 'bg-purple-500' },
-  green: { gradient: 'from-green-50 to-emerald-50', badge: 'bg-green-500' },
-  orange: { gradient: 'from-orange-50 to-amber-50', badge: 'bg-orange-500' },
-  indigo: { gradient: 'from-indigo-50 to-purple-50', badge: 'bg-indigo-500' },
-};
 
 export default function FormSection({
   number,
   title,
   description,
   children,
-  colorScheme = 'blue'
 }: FormSectionProps) {
-  const colors = colorSchemes[colorScheme];
+  const { theme } = useTheme();
+
+  const styles = {
+    container: {
+      backgroundColor: theme.colors.bgPrimary,
+      borderRadius: '0.75rem',
+      boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+      borderWidth: '1px',
+      borderStyle: 'solid' as const,
+      borderColor: theme.colors.borderPrimary,
+      overflow: 'hidden' as const,
+    },
+    header: {
+      background: `linear-gradient(to right, ${withOpacity(theme.colors.accentPrimary, 10)}, ${withOpacity(theme.colors.accentSecondary, 10)})`,
+      padding: '1.5rem',
+      borderBottomWidth: '1px',
+      borderBottomStyle: 'solid' as const,
+      borderBottomColor: theme.colors.borderPrimary,
+    },
+    title: {
+      fontSize: '1.125rem',
+      fontWeight: 600,
+      color: theme.colors.textPrimary,
+      display: 'flex',
+      alignItems: 'center',
+    },
+    badge: {
+      width: '2rem',
+      height: '2rem',
+      borderRadius: '0.5rem',
+      backgroundColor: theme.colors.accentPrimary,
+      color: '#ffffff',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: '0.75rem',
+      fontSize: '0.875rem',
+      fontWeight: 500,
+    },
+    description: {
+      fontSize: '0.875rem',
+      color: theme.colors.textSecondary,
+      marginTop: '0.25rem',
+      marginLeft: '2.75rem',
+    },
+    content: {
+      padding: '1.5rem',
+    },
+  };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div className={`bg-gradient-to-r ${colors.gradient} px-6 py-4 border-b border-gray-200`}>
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-          <span className={`w-8 h-8 rounded-lg ${colors.badge} text-white flex items-center justify-center mr-3 text-sm`}>
-            {number}
-          </span>
+    <div style={styles.container}>
+      <div style={styles.header}>
+        <h3 style={styles.title}>
+          <span style={styles.badge}>{number}</span>
           {title}
         </h3>
-        <p className="text-sm text-gray-600 mt-1 ml-11">{description}</p>
+        <p style={styles.description}>{description}</p>
       </div>
-      <div className="p-6 space-y-5">
+      <div style={styles.content} className="space-y-5">
         {children}
       </div>
     </div>
