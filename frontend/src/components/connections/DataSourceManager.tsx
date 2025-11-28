@@ -5,6 +5,7 @@ import { DataSource, DiscoveredItem } from '../../types/dataSource';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
 import { useToastStore } from '../../store/toastStore';
+import { useTheme } from '../../contexts/ThemeContext';
 import {
   PlusIcon,
   MagnifyingGlassIcon,
@@ -19,6 +20,7 @@ interface DataSourceManagerProps {
 }
 
 export default function DataSourceManager({ connection }: DataSourceManagerProps) {
+  const { theme } = useTheme();
   const {
     dataSources,
     isLoading,
@@ -132,9 +134,9 @@ export default function DataSourceManager({ connection }: DataSourceManagerProps
   };
 
   return (
-    <div className="mt-6 border-t border-gray-200 pt-6">
+    <div className="mt-6 border-t pt-6" style={{ borderColor: theme.colors.borderPrimary }}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">
+        <h3 className="text-lg font-semibold" style={{ color: theme.colors.textPrimary }}>
           {getSourceTypeLabel()}s
         </h3>
         <div className="flex gap-2">
@@ -155,7 +157,7 @@ export default function DataSourceManager({ connection }: DataSourceManagerProps
 
       {/* Data Sources List */}
       {dataSources.length === 0 ? (
-        <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-md">
+        <div className="text-center py-8 rounded-md" style={{ color: theme.colors.textSecondary, backgroundColor: theme.colors.bgTertiary }}>
           <p className="mb-2">No {getSourceTypeLabel().toLowerCase()}s configured</p>
           <p className="text-sm">
             Click "Discover" to auto-detect or "Add {getSourceTypeLabel()}" to create manually
@@ -166,24 +168,26 @@ export default function DataSourceManager({ connection }: DataSourceManagerProps
           {dataSources.map((dataSource) => (
             <div
               key={dataSource.id}
-              className="flex items-center justify-between p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-all duration-200 hover:shadow-md hover:scale-[1.01] hover:-translate-y-0.5"
+              className="flex items-center justify-between p-3 rounded-md transition-all duration-200 hover:shadow-md hover:scale-[1.01] hover:-translate-y-0.5"
+              style={{ backgroundColor: theme.colors.bgTertiary }}
             >
               <div className="flex items-center gap-3">
                 {dataSource.is_active ? (
-                  <CheckCircleIcon className="w-5 h-5 text-green-600" />
+                  <CheckCircleIcon className="w-5 h-5" style={{ color: theme.colors.success }} />
                 ) : (
-                  <XCircleIcon className="w-5 h-5 text-gray-400" />
+                  <XCircleIcon className="w-5 h-5" style={{ color: theme.colors.textSecondary, opacity: 0.6 }} />
                 )}
                 <div>
-                  <div className="font-medium text-gray-900">{dataSource.name}</div>
-                  <div className="text-sm text-gray-600">{dataSource.source_identifier}</div>
+                  <div className="font-medium" style={{ color: theme.colors.textPrimary }}>{dataSource.name}</div>
+                  <div className="text-sm" style={{ color: theme.colors.textSecondary }}>{dataSource.source_identifier}</div>
                 </div>
               </div>
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => handleEdit(dataSource)}
-                  className="p-2 text-gray-600 hover:bg-white rounded-md transition-all duration-200 hover:scale-110 hover:text-blue-600"
+                  className="p-2 rounded-md transition-all duration-200 hover:scale-110"
+                  style={{ color: theme.colors.textSecondary }}
                   title="Edit"
                 >
                   <PencilIcon className="w-4 h-4 transition-transform duration-200" />
@@ -191,7 +195,8 @@ export default function DataSourceManager({ connection }: DataSourceManagerProps
                 <button
                   type="button"
                   onClick={() => handleDelete(dataSource.id)}
-                  className="p-2 text-red-600 hover:bg-white rounded-md transition-all duration-200 hover:scale-110 hover:text-red-700"
+                  className="p-2 rounded-md transition-all duration-200 hover:scale-110 hover:text-red-700"
+                  style={{ color: theme.colors.error }}
                   title="Delete"
                 >
                   <TrashIcon className="w-4 h-4 transition-transform duration-200" />
@@ -213,7 +218,7 @@ export default function DataSourceManager({ connection }: DataSourceManagerProps
       >
         {discoverResult?.success ? (
           <div>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm mb-4" style={{ color: theme.colors.textSecondary }}>
               Found {discoverResult.items?.length || 0} {getSourceTypeLabel().toLowerCase()}
               {discoverResult.items?.length !== 1 ? 's' : ''}
             </p>
@@ -223,19 +228,20 @@ export default function DataSourceManager({ connection }: DataSourceManagerProps
                   key={item.identifier}
                   type="button"
                   onClick={() => handleSelectDiscovered(item)}
-                  className="w-full text-left p-3 bg-gray-50 hover:bg-blue-50 rounded-md transition-all duration-200 hover:shadow-sm hover:scale-[1.02] hover:-translate-y-0.5"
+                  className="w-full text-left p-3 rounded-md transition-all duration-200 hover:shadow-sm hover:scale-[1.02] hover:-translate-y-0.5"
+                  style={{ backgroundColor: theme.colors.bgTertiary }}
                 >
-                  <div className="font-medium text-gray-900 transition-colors duration-200">{item.name}</div>
-                  <div className="text-sm text-gray-600">{item.identifier}</div>
+                  <div className="font-medium transition-colors duration-200" style={{ color: theme.colors.textPrimary }}>{item.name}</div>
+                  <div className="text-sm" style={{ color: theme.colors.textSecondary }}>{item.identifier}</div>
                 </button>
               ))}
             </div>
           </div>
         ) : (
           <div className="text-center py-8">
-            <p className="text-red-600">{discoverResult?.message || 'Discovery failed'}</p>
+            <p style={{ color: theme.colors.error }}>{discoverResult?.message || 'Discovery failed'}</p>
             {discoverResult?.error && (
-              <p className="text-sm text-gray-600 mt-2">{discoverResult.error}</p>
+              <p className="text-sm mt-2" style={{ color: theme.colors.textSecondary }}>{discoverResult.error}</p>
             )}
           </div>
         )}
@@ -249,27 +255,37 @@ export default function DataSourceManager({ connection }: DataSourceManagerProps
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium mb-1" style={{ color: theme.colors.textPrimary }}>
               Display Name
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2"
+              style={{
+                borderColor: theme.colors.borderPrimary,
+                backgroundColor: theme.colors.bgPrimary,
+                color: theme.colors.textPrimary
+              }}
               placeholder="e.g., Sales Database"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium mb-1" style={{ color: theme.colors.textPrimary }}>
               {getSourceTypeLabel()} {['mysql', 'postgresql'].includes(connection.type) ? 'Name' : 'Path'}
             </label>
             <input
               type="text"
               value={formData.source_identifier}
               onChange={(e) => setFormData({ ...formData, source_identifier: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2"
+              style={{
+                borderColor: theme.colors.borderPrimary,
+                backgroundColor: theme.colors.bgPrimary,
+                color: theme.colors.textPrimary
+              }}
               placeholder={
                 ['mysql', 'postgresql'].includes(connection.type)
                   ? 'e.g., sales_db'

@@ -8,6 +8,7 @@ import Button from '../common/Button';
 import Modal from '../common/Modal';
 import Dropdown from '../common/Dropdown';
 import { PlusIcon, MagnifyingGlassIcon, ServerIcon } from '@heroicons/react/24/outline';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface DataSourceQuickCreateProps {
   onCreated?: (dataSourceId: number) => void;
@@ -16,6 +17,7 @@ interface DataSourceQuickCreateProps {
 }
 
 export default function DataSourceQuickCreate({ onCreated, onCancel, embedded = false }: DataSourceQuickCreateProps) {
+  const { theme } = useTheme();
   const { connections, fetchConnections } = useConnectionStore();
   const {
     createDataSource,
@@ -127,9 +129,9 @@ export default function DataSourceQuickCreate({ onCreated, onCancel, embedded = 
 
   if (connections.length === 0) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
-        <h3 className="text-sm font-medium text-yellow-900 mb-2">No Connections Available</h3>
-        <p className="text-sm text-yellow-800 mb-3">
+      <div className="border rounded-md p-4" style={{ backgroundColor: theme.colors.bgTertiary, borderColor: theme.colors.warning }}>
+        <h3 className="text-sm font-medium mb-2" style={{ color: theme.colors.warning }}>No Connections Available</h3>
+        <p className="text-sm mb-3" style={{ color: theme.colors.textPrimary }}>
           You need to create a connection before you can add data sources.
         </p>
         <Button size="sm" onClick={() => window.location.href = '/connections'}>
@@ -143,9 +145,9 @@ export default function DataSourceQuickCreate({ onCreated, onCancel, embedded = 
   const formProps = embedded ? {} : { onSubmit: handleSubmit };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 transition-all duration-300 hover:shadow-md">
+    <div className="border rounded-lg p-6 transition-all duration-300 hover:shadow-md" style={{ backgroundColor: theme.colors.bgSecondary, borderColor: theme.colors.borderPrimary }}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 transition-colors duration-200">Quick Create Data Source</h3>
+        <h3 className="text-lg font-semibold transition-colors duration-200" style={{ color: theme.colors.textPrimary }}>Quick Create Data Source</h3>
         <Button
           type="button"
           onClick={handleDiscover}
@@ -177,14 +179,14 @@ export default function DataSourceQuickCreate({ onCreated, onCancel, embedded = 
             placeholder="Choose a connection..."
             searchable
           />
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs" style={{ color: theme.colors.textSecondary }}>
             Select the connection to create a data source from
           </p>
         </div>
 
         {/* Display Name */}
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="name" className="block text-sm font-medium mb-1" style={{ color: theme.colors.textPrimary }}>
             Display Name *
           </label>
           <input
@@ -192,7 +194,12 @@ export default function DataSourceQuickCreate({ onCreated, onCancel, embedded = 
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 hover:border-blue-400 focus:scale-[1.01]"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-all duration-200 focus:scale-[1.01]"
+            style={{
+              borderColor: theme.colors.borderPrimary,
+              backgroundColor: theme.colors.bgPrimary,
+              color: theme.colors.textPrimary
+            }}
             placeholder="e.g., Sales Database"
             required
           />
@@ -200,7 +207,7 @@ export default function DataSourceQuickCreate({ onCreated, onCancel, embedded = 
 
         {/* Source Identifier */}
         <div>
-          <label htmlFor="source_identifier" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="source_identifier" className="block text-sm font-medium mb-1" style={{ color: theme.colors.textPrimary }}>
             {getSourceTypeLabel()}{' '}
             {selectedConnection && ['mysql', 'postgresql'].includes(selectedConnection.type)
               ? 'Name'
@@ -212,7 +219,12 @@ export default function DataSourceQuickCreate({ onCreated, onCancel, embedded = 
             id="source_identifier"
             value={formData.source_identifier}
             onChange={(e) => setFormData({ ...formData, source_identifier: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 hover:border-blue-400 focus:scale-[1.01]"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-all duration-200 focus:scale-[1.01]"
+            style={{
+              borderColor: theme.colors.borderPrimary,
+              backgroundColor: theme.colors.bgPrimary,
+              color: theme.colors.textPrimary
+            }}
             placeholder={
               selectedConnection && ['mysql', 'postgresql'].includes(selectedConnection.type)
                 ? 'e.g., visualization_test'
@@ -220,7 +232,7 @@ export default function DataSourceQuickCreate({ onCreated, onCancel, embedded = 
             }
             required
           />
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs" style={{ color: theme.colors.textSecondary }}>
             {selectedConnection && ['mysql', 'postgresql'].includes(selectedConnection.type)
               ? 'The database name on your server'
               : 'The folder path in your storage'}
@@ -256,7 +268,7 @@ export default function DataSourceQuickCreate({ onCreated, onCancel, embedded = 
       >
         {discoverResult?.success ? (
           <div>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm mb-4" style={{ color: theme.colors.textSecondary }}>
               Found {discoverResult.items?.length || 0} {getSourceTypeLabel().toLowerCase()}
               {discoverResult.items?.length !== 1 ? 's' : ''}
             </p>
@@ -266,19 +278,20 @@ export default function DataSourceQuickCreate({ onCreated, onCancel, embedded = 
                   key={item.identifier}
                   type="button"
                   onClick={() => handleSelectDiscovered(item)}
-                  className="w-full text-left p-3 bg-gray-50 hover:bg-blue-50 rounded-md transition-all duration-200 hover:shadow-sm hover:scale-[1.02] hover:-translate-y-0.5"
+                  className="w-full text-left p-3 rounded-md transition-all duration-200 hover:shadow-sm hover:scale-[1.02] hover:-translate-y-0.5"
+                  style={{ backgroundColor: theme.colors.bgTertiary }}
                 >
-                  <div className="font-medium text-gray-900 transition-colors duration-200">{item.name}</div>
-                  <div className="text-sm text-gray-600">{item.identifier}</div>
+                  <div className="font-medium transition-colors duration-200" style={{ color: theme.colors.textPrimary }}>{item.name}</div>
+                  <div className="text-sm" style={{ color: theme.colors.textSecondary }}>{item.identifier}</div>
                 </button>
               ))}
             </div>
           </div>
         ) : (
           <div className="text-center py-8">
-            <p className="text-red-600">{discoverResult?.message || 'Discovery failed'}</p>
+            <p style={{ color: theme.colors.error }}>{discoverResult?.message || 'Discovery failed'}</p>
             {discoverResult?.error && (
-              <p className="text-sm text-gray-600 mt-2">{discoverResult.error}</p>
+              <p className="text-sm mt-2" style={{ color: theme.colors.textSecondary }}>{discoverResult.error}</p>
             )}
           </div>
         )}

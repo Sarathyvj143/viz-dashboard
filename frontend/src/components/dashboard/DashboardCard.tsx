@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import Card from '../common/Card';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface DashboardCardProps {
   title: string;
@@ -9,6 +10,8 @@ interface DashboardCardProps {
 }
 
 export default function DashboardCard({ title, description, onClick, actions }: DashboardCardProps) {
+  const { theme } = useTheme();
+
   return (
     <Card
       title={title}
@@ -17,10 +20,10 @@ export default function DashboardCard({ title, description, onClick, actions }: 
     >
       <div onClick={onClick}>
         {description && (
-          <p className="text-gray-600">{description}</p>
+          <p style={{ color: theme.colors.textSecondary }}>{description}</p>
         )}
         {!description && (
-          <p className="text-gray-400 italic">No description</p>
+          <p className="italic" style={{ color: theme.colors.textTertiary }}>No description</p>
         )}
       </div>
     </Card>

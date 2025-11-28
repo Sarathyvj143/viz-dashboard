@@ -1,6 +1,7 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useTheme } from '../../contexts/ThemeContext';
+import { withOpacity } from '../../utils/colorHelpers';
 import { logger } from '../../utils/logger';
 
 interface Props {
@@ -62,7 +63,7 @@ function ErrorFallback({ error, errorInfo, onReset, onReload }: {
             <details
               className="text-left mb-6 p-4 rounded"
               style={{
-                backgroundColor: `${theme.colors.error}15`,
+                backgroundColor: withOpacity(theme.colors.error, 15),
                 borderColor: theme.colors.error,
                 borderWidth: '1px',
                 borderStyle: 'solid',
@@ -85,7 +86,7 @@ function ErrorFallback({ error, errorInfo, onReset, onReload }: {
                   <pre
                     className="text-xs overflow-auto max-h-48 p-2 rounded"
                     style={{
-                      backgroundColor: `${theme.colors.error}10`,
+                      backgroundColor: withOpacity(theme.colors.error, 10),
                       color: theme.colors.error,
                     }}
                   >

@@ -1,10 +1,10 @@
 import apiClient from './client';
-import { PaginatedResponse, QueryParams } from '../types/api';
+import { QueryParams } from '../types/api';
 import { Chart } from '../types/chart';
 
 export const chartsApi = {
   getAll: async (params?: QueryParams) => {
-    const response = await apiClient.get<PaginatedResponse<Chart>>(
+    const response = await apiClient.get<Chart[]>(
       '/charts',
       { params }
     );

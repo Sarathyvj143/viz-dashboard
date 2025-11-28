@@ -24,7 +24,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         setCurrentTheme(theme);
         setCustomColors(savedCustomColors || null);
       } catch (error) {
-        console.error('Failed to load theme preference:', error);
+        if (import.meta.env.DEV) {
+          console.error('Failed to load theme preference:', error);
+        }
         // Fall back to localStorage or default
         const localTheme = localStorage.getItem('theme') as ThemeName;
         const localCustomColors = localStorage.getItem('customThemeColors');
@@ -92,7 +94,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       }
       await themeApi.updateTheme(themeName, newCustomColors);
     } catch (error) {
-      console.error('Failed to save theme preference:', error);
+      if (import.meta.env.DEV) {
+        console.error('Failed to save theme preference:', error);
+      }
       showToast('Failed to save theme preference', 'error');
       // Still apply theme locally even if API fails
     }

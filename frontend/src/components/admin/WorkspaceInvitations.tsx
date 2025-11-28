@@ -95,95 +95,148 @@ export default function WorkspaceInvitations({ workspaceId, workspaceName }: Wor
   return (
     <div className="rounded-lg shadow-md" style={{ backgroundColor: theme.colors.bgPrimary }}>
       {/* Header */}
-      <div className="p-6" style={styles.borderBottom()}>
-        <div className="flex justify-between items-center mb-2">
-          <div className="flex items-center gap-3">
-            <UserGroupIcon className="w-6 h-6 text-gray-600" />
-            <h2 className="text-2xl font-semibold text-gray-900">Workspace Members</h2>
+      <div className="p-3 sm:p-4 md:p-6" style={styles.borderBottom()}>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-2 sm:mb-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <UserGroupIcon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: theme.colors.textSecondary }} />
+            <h2 className="text-lg sm:text-xl md:text-2xl font-semibold" style={{ color: theme.colors.textPrimary }}>Workspace Members</h2>
           </div>
           <Button
             variant="primary"
             onClick={() => setIsInviteModalOpen(true)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base"
           >
-            <PlusIcon className="w-5 h-5" />
-            Invite Member
+            <PlusIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="hidden sm:inline">Invite Member</span>
+            <span className="sm:hidden">Invite</span>
           </Button>
         </div>
-        <p className="text-sm text-gray-600">
+        <p className="text-xs sm:text-sm break-words" style={{ color: theme.colors.textSecondary }}>
           Manage members for workspace: <span className="font-medium">{workspaceName}</span>
         </p>
       </div>
 
       {/* Success Message */}
       {successMessage && (
-        <div className="mx-6 mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
-          <p className="text-green-800">{successMessage}</p>
+        <div className="mx-3 sm:mx-4 md:mx-6 mt-3 sm:mt-4 p-3 sm:p-4 rounded-md" style={styles.statusBox('success')}>
+          <p className="text-sm sm:text-base" style={styles.text.success}>{successMessage}</p>
         </div>
       )}
 
       {/* Error Display */}
       {error && (
-        <div className="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-red-800">{error}</p>
+        <div className="mx-3 sm:mx-4 md:mx-6 mt-3 sm:mt-4 p-3 sm:p-4 rounded-md" style={styles.statusBox('error')}>
+          <p className="text-sm sm:text-base" style={styles.text.error}>{error}</p>
         </div>
       )}
 
       {/* Members Table */}
-      <div className="overflow-x-auto">
+      <div>
         {loading ? (
-          <div className="p-12 text-center text-gray-500">Loading members...</div>
+          <div className="p-8 sm:p-12 text-center text-sm sm:text-base" style={{ color: theme.colors.textSecondary }}>Loading members...</div>
         ) : members.length === 0 ? (
-          <div className="p-12 text-center text-gray-500">No members in this workspace</div>
+          <div className="p-8 sm:p-12 text-center text-sm sm:text-base" style={{ color: theme.colors.textSecondary }}>No members in this workspace</div>
         ) : (
-          <table className="w-full">
-            <thead style={styles.table.header}>
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={styles.table.headerCell}>
-                  User ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={styles.table.headerCell}>
-                  Role
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={styles.table.headerCell}>
-                  Joined Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={styles.table.headerCell}>
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody style={styles.table.body}>
+          <>
+            {/* Mobile view - Cards */}
+            <div className="block md:hidden space-y-3 sm:space-y-4 p-3 sm:p-4">
               {members.map((member) => (
-                <tr key={member.id} style={styles.table.row}>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    User #{member.user_id}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="w-48">
+                <div
+                  key={member.id}
+                  className="rounded-lg p-3 sm:p-4 shadow-sm"
+                  style={{ backgroundColor: theme.colors.bgSecondary, borderWidth: '1px', borderStyle: 'solid', borderColor: theme.colors.borderPrimary }}
+                >
+                  <div className="space-y-3">
+                    {/* User ID */}
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="text-xs" style={{ color: theme.colors.textSecondary }}>User ID</div>
+                        <div className="text-sm sm:text-base font-medium" style={{ color: theme.colors.textPrimary }}>
+                          User #{member.user_id}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveMember(member.user_id, `User #${member.user_id}`)}
+                        className="hover:opacity-80 transition-opacity"
+                        title="Remove Member"
+                        aria-label="Remove member"
+                      >
+                        <TrashIcon className="w-5 h-5" style={{ color: theme.colors.error }} />
+                      </button>
+                    </div>
+
+                    {/* Role Dropdown */}
+                    <div>
+                      <div className="text-xs mb-1" style={{ color: theme.colors.textSecondary }}>Role</div>
                       <Dropdown
                         options={ROLE_OPTIONS}
                         value={member.role}
                         onChange={(value) => value && handleUpdateRole(member.user_id, value)}
                       />
                     </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    {formatDateOnly(member.joined_at)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() => handleRemoveMember(member.user_id, `User #${member.user_id}`)}
-                      className="text-red-600 hover:text-red-800"
-                      title="Remove Member"
-                    >
-                      <TrashIcon className="w-5 h-5" />
-                    </button>
-                  </td>
-                </tr>
+
+                    {/* Joined Date */}
+                    <div className="text-xs sm:text-sm pt-2 border-t" style={{ color: theme.colors.textSecondary, borderColor: theme.colors.borderPrimary }}>
+                      Joined: {formatDateOnly(member.joined_at)}
+                    </div>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Desktop view - Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="min-w-full w-full" style={{ tableLayout: 'auto' }}>
+                <thead style={styles.table.header}>
+                  <tr>
+                    <th className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-left text-xs md:text-sm font-medium uppercase tracking-wider whitespace-nowrap" style={{ ...styles.table.headerCell, width: 'auto' }}>
+                      User ID
+                    </th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-left text-xs md:text-sm font-medium uppercase tracking-wider whitespace-nowrap" style={{ ...styles.table.headerCell, width: 'auto' }}>
+                      Role
+                    </th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-left text-xs md:text-sm font-medium uppercase tracking-wider whitespace-nowrap" style={{ ...styles.table.headerCell, width: 'auto' }}>
+                      Joined Date
+                    </th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-left text-xs md:text-sm font-medium uppercase tracking-wider whitespace-nowrap" style={{ ...styles.table.headerCell, width: 'auto' }}>
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody style={styles.table.body}>
+                  {members.map((member) => (
+                    <tr key={member.id} style={styles.table.row}>
+                      <td className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm lg:text-base whitespace-nowrap" style={styles.table.cell}>
+                        User #{member.user_id}
+                      </td>
+                      <td className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4">
+                        <div className="w-full max-w-[180px] md:max-w-[200px] lg:max-w-[240px]">
+                          <Dropdown
+                            options={ROLE_OPTIONS}
+                            value={member.role}
+                            onChange={(value) => value && handleUpdateRole(member.user_id, value)}
+                          />
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm lg:text-base whitespace-nowrap" style={styles.table.cellSecondary}>
+                        {formatDateOnly(member.joined_at)}
+                      </td>
+                      <td className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 whitespace-nowrap">
+                        <button
+                          onClick={() => handleRemoveMember(member.user_id, `User #${member.user_id}`)}
+                          className="hover:opacity-80 transition-opacity"
+                          title="Remove Member"
+                          aria-label="Remove member"
+                        >
+                          <TrashIcon className="w-4 h-4 md:w-5 md:h-5 lg:w-6 lg:h-6" style={{ color: theme.colors.error }} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 

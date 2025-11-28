@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useConnectionStore } from '../store/connectionStore';
 import { useThemedStyles } from '../hooks/useThemedStyles';
+import { useTheme } from '../contexts/ThemeContext';
 import { Connection } from '../types/connection';
 import Header from '../components/layout/Header';
 import Button from '../components/common/Button';
@@ -16,6 +17,7 @@ type ViewMode = 'table' | 'grid';
 
 export default function ConnectionsPage() {
   const styles = useThemedStyles();
+  const { theme } = useTheme();
   const {
     connections,
     isLoading,
@@ -101,16 +103,16 @@ export default function ConnectionsPage() {
   };
 
   return (
-    <div>
+    <div style={{ backgroundColor: theme.colors.bgPrimary, minHeight: '100vh' }}>
       <Header
         title="Connections"
         subtitle="Manage database connections and external data sources"
       />
 
-      <div className="p-3 sm:p-4 md:p-6 max-w-full lg:max-w-7xl xl:max-w-[1600px] mx-auto">
+      <div className="p-3 sm:p-4 md:p-6 w-full">
         {/* Action Bar */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6">
-          <div className="text-xs sm:text-sm text-gray-600">
+          <div className="text-xs sm:text-sm" style={{ color: theme.colors.textSecondary }}>
             {connections.length} connection{connections.length !== 1 ? 's' : ''}
           </div>
           <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">
@@ -119,11 +121,23 @@ export default function ConnectionsPage() {
               <div className="inline-flex rounded-md shadow-sm" role="group">
                 <button
                   onClick={() => setViewMode('table')}
-                  className={`px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium border ${
-                    viewMode === 'table'
-                      ? 'bg-blue-600 text-white border-blue-600 z-10'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                  } rounded-l-md transition-colors`}
+                  className="px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium border rounded-l-md transition-colors"
+                  style={{
+                    backgroundColor: viewMode === 'table' ? theme.colors.accentPrimary : theme.colors.bgSecondary,
+                    color: viewMode === 'table' ? 'white' : theme.colors.textPrimary,
+                    borderColor: viewMode === 'table' ? theme.colors.accentPrimary : theme.colors.borderPrimary,
+                    zIndex: viewMode === 'table' ? 10 : 'auto'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (viewMode !== 'table') {
+                      e.currentTarget.style.backgroundColor = theme.colors.bgTertiary;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (viewMode !== 'table') {
+                      e.currentTarget.style.backgroundColor = theme.colors.bgSecondary;
+                    }
+                  }}
                   aria-label="Table view"
                 >
                   <ViewColumnsIcon className="w-3 h-3 sm:w-4 sm:h-4 inline sm:mr-1" />
@@ -131,11 +145,23 @@ export default function ConnectionsPage() {
                 </button>
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium border-t border-b border-r ${
-                    viewMode === 'grid'
-                      ? 'bg-blue-600 text-white border-blue-600 z-10'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                  } rounded-r-md transition-colors`}
+                  className="px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium border-t border-b border-r rounded-r-md transition-colors"
+                  style={{
+                    backgroundColor: viewMode === 'grid' ? theme.colors.accentPrimary : theme.colors.bgSecondary,
+                    color: viewMode === 'grid' ? 'white' : theme.colors.textPrimary,
+                    borderColor: viewMode === 'grid' ? theme.colors.accentPrimary : theme.colors.borderPrimary,
+                    zIndex: viewMode === 'grid' ? 10 : 'auto'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (viewMode !== 'grid') {
+                      e.currentTarget.style.backgroundColor = theme.colors.bgTertiary;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (viewMode !== 'grid') {
+                      e.currentTarget.style.backgroundColor = theme.colors.bgSecondary;
+                    }
+                  }}
                   aria-label="Grid view"
                 >
                   <Squares2X2Icon className="w-3 h-3 sm:w-4 sm:h-4 inline sm:mr-1" />
@@ -152,7 +178,7 @@ export default function ConnectionsPage() {
 
         {/* Loading State */}
         {isLoading && connections.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12" style={{ color: theme.colors.textSecondary }}>
             Loading connections...
           </div>
         )}
@@ -164,7 +190,7 @@ export default function ConnectionsPage() {
             <h3 className="text-lg font-semibold mb-2" style={styles.heading.primary}>
               No connections configured
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="mb-6" style={{ color: theme.colors.textSecondary }}>
               Connect to databases or cloud storage to start visualizing your data
             </p>
             <Button onClick={handleCreate}>

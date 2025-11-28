@@ -187,13 +187,13 @@ export default function DashboardDetail() {
 
   if (loading) {
     return (
-      <div>
+      <div style={{ backgroundColor: theme.colors.bgPrimary, minHeight: '100vh' }}>
         <Header
           title="Loading..."
           subtitle="Please wait"
         />
         <div className="flex items-center justify-center h-64">
-          <div className="text-gray-500">Loading dashboard...</div>
+          <div style={{ color: theme.colors.textSecondary }}>Loading dashboard...</div>
         </div>
       </div>
     );
@@ -201,14 +201,22 @@ export default function DashboardDetail() {
 
   if (error && !isNew) {
     return (
-      <div>
+      <div style={{ backgroundColor: theme.colors.bgPrimary, minHeight: '100vh' }}>
         <Header
           title="Error"
           subtitle="Failed to load dashboard"
         />
         <div className="p-6">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-800">{error}</p>
+          <div
+            className="rounded-lg p-4"
+            style={{
+              backgroundColor: theme.colors.bgTertiary,
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              borderColor: theme.colors.borderPrimary
+            }}
+          >
+            <p style={{ color: theme.colors.error }}>{error}</p>
             <div className="mt-4 flex gap-2">
               <Button onClick={fetchDashboard}>Retry</Button>
               <Button onClick={() => navigate('/dashboards')} variant="secondary">
@@ -222,7 +230,7 @@ export default function DashboardDetail() {
   }
 
   return (
-    <div>
+    <div style={{ backgroundColor: theme.colors.bgPrimary, minHeight: '100vh' }}>
       <Header
         title={isNew ? 'Create Dashboard' : dashboard?.name || 'Dashboard'}
         subtitle={isNew ? 'Create a new dashboard' : 'Edit dashboard configuration'}
@@ -246,11 +254,19 @@ export default function DashboardDetail() {
         }
       />
 
-      <div className="p-3 sm:p-4 md:p-6 w-full max-w-full lg:max-w-6xl xl:max-w-7xl mx-auto">
+      <div className="p-3 sm:p-4 md:p-6 w-full">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4">
-              <p className="text-sm sm:text-base text-red-800">{error}</p>
+            <div
+              className="rounded-lg p-3 sm:p-4"
+              style={{
+                backgroundColor: theme.colors.bgTertiary,
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: theme.colors.borderPrimary
+              }}
+            >
+              <p className="text-sm sm:text-base" style={{ color: theme.colors.error }}>{error}</p>
             </div>
           )}
 
@@ -258,32 +274,44 @@ export default function DashboardDetail() {
             <h2 className="text-sm sm:text-base md:text-lg font-semibold" style={styles.heading.primary}>Basic Information</h2>
 
             <div>
-              <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="name" className="block text-xs sm:text-sm font-medium mb-1" style={{ color: theme.colors.textPrimary }}>
                 Dashboard Name *
               </label>
               <input
                 type="text"
                 id="name"
                 {...register('name')}
-                className={`w-full px-2 py-1.5 sm:px-3 sm:py-2 text-sm sm:text-base border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.name ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className="w-full px-2 py-1.5 sm:px-3 sm:py-2 text-sm sm:text-base rounded-md shadow-sm focus:outline-none focus:ring-2"
+                style={{
+                  backgroundColor: theme.colors.bgPrimary,
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: errors.name ? theme.colors.error : theme.colors.borderPrimary,
+                  color: theme.colors.textPrimary
+                }}
                 placeholder="Enter dashboard name"
               />
               {errors.name && (
-                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.name.message}</p>
+                <p className="mt-1 text-xs sm:text-sm" style={{ color: theme.colors.error }}>{errors.name.message}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="description" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="description" className="block text-xs sm:text-sm font-medium mb-1" style={{ color: theme.colors.textPrimary }}>
                 Description
               </label>
               <textarea
                 id="description"
                 {...register('description')}
                 rows={3}
-                className="w-full px-2 py-1.5 sm:px-3 sm:py-2 text-sm sm:text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-2 py-1.5 sm:px-3 sm:py-2 text-sm sm:text-base rounded-md shadow-sm focus:outline-none focus:ring-2"
+                style={{
+                  backgroundColor: theme.colors.bgPrimary,
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: theme.colors.borderPrimary,
+                  color: theme.colors.textPrimary
+                }}
                 placeholder="Enter dashboard description (optional)"
               />
             </div>
@@ -293,9 +321,10 @@ export default function DashboardDetail() {
                 type="checkbox"
                 id="is_public"
                 {...register('is_public')}
-                className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-3.5 w-3.5 sm:h-4 sm:w-4 rounded"
+                style={{ accentColor: theme.colors.accentPrimary }}
               />
-              <label htmlFor="is_public" className="ml-2 block text-xs sm:text-sm text-gray-700">
+              <label htmlFor="is_public" className="ml-2 block text-xs sm:text-sm" style={{ color: theme.colors.textPrimary }}>
                 Make this dashboard public (can be shared via link)
               </label>
             </div>
@@ -336,7 +365,10 @@ export default function DashboardDetail() {
               <h3 className="text-sm sm:text-base md:text-lg font-semibold" style={styles.heading.primary}>Share Dashboard</h3>
               <button
                 onClick={() => setShowShareModal(false)}
-                className="text-gray-400 hover:text-gray-600 flex-shrink-0 ml-2"
+                className="flex-shrink-0 ml-2"
+                style={{ color: theme.colors.textSecondary }}
+                onMouseEnter={(e) => e.currentTarget.style.color = theme.colors.textPrimary}
+                onMouseLeave={(e) => e.currentTarget.style.color = theme.colors.textSecondary}
                 aria-label="Close share modal"
               >
                 <XMarkIcon className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -346,7 +378,7 @@ export default function DashboardDetail() {
             {shareUrl ? (
               <div className="space-y-3 sm:space-y-4">
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                  <label className="block text-xs sm:text-sm font-medium mb-1 sm:mb-2" style={{ color: theme.colors.textPrimary }}>
                     Public Share Link
                   </label>
                   <div className="flex flex-col gap-2">
@@ -354,15 +386,21 @@ export default function DashboardDetail() {
                       type="text"
                       readOnly
                       value={shareUrl}
-                      className="w-full px-2 py-1.5 sm:px-3 sm:py-2 border rounded-md text-xs sm:text-sm break-all"
-                      style={{ backgroundColor: theme.colors.bgSecondary, borderColor: theme.colors.borderPrimary }}
+                      className="w-full px-2 py-1.5 sm:px-3 sm:py-2 rounded-md text-xs sm:text-sm break-all"
+                      style={{
+                        backgroundColor: theme.colors.bgSecondary,
+                        borderWidth: '1px',
+                        borderStyle: 'solid',
+                        borderColor: theme.colors.borderPrimary,
+                        color: theme.colors.textPrimary
+                      }}
                     />
                     <Button onClick={copyShareLink} variant="secondary" className="w-full text-sm sm:text-base">
                       <LinkIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                       Copy Link
                     </Button>
                   </div>
-                  <p className="mt-1.5 sm:mt-2 text-xs text-gray-500">
+                  <p className="mt-1.5 sm:mt-2 text-xs" style={{ color: theme.colors.textSecondary }}>
                     Anyone with this link can view this dashboard.
                   </p>
                 </div>
@@ -386,7 +424,7 @@ export default function DashboardDetail() {
               </div>
             ) : (
               <div className="space-y-3 sm:space-y-4">
-                <p className="text-xs sm:text-sm text-gray-600">
+                <p className="text-xs sm:text-sm" style={{ color: theme.colors.textSecondary }}>
                   Generate a public link that allows anyone to view this dashboard without logging in.
                   The link will expire after 30 days.
                 </p>

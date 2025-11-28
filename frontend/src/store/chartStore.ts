@@ -24,8 +24,8 @@ export const useChartStore = create<ChartStore>((set) => ({
   fetchCharts: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await chartsApi.getAll();
-      set({ charts: response.items, isLoading: false });
+      const charts = await chartsApi.getAll();
+      set({ charts, isLoading: false });
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to fetch charts',

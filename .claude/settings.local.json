@@ -6,7 +6,12 @@
       "Bash(claudekit:*)",
       "SlashCommand(/spec:execute:*)",
       "mcp__ide__getDiagnostics",
-      "WebSearch"
+      "WebSearch",
+      "WebFetch(domain:help.tableau.com)",
+      "WebFetch(domain:superset.apache.org)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.pencilandpaper.io)",
+      "WebFetch(domain:medium.com)"
     ],
     "deny": [],
     "ask": []

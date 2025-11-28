@@ -43,7 +43,7 @@ export default function UsersPage() {
         title="User Management"
         subtitle="Manage users, roles, and permissions"
       />
-      <div className="p-3 sm:p-4 md:p-6 max-w-full lg:max-w-7xl xl:max-w-[1600px] mx-auto">
+      <div className="p-3 sm:p-4 md:p-6 w-full">
         {/* Tab Navigation */}
         <div className="mb-4 sm:mb-6" style={styles.borderBottom()}>
           <nav className="-mb-px flex space-x-4 sm:space-x-8 overflow-x-auto" aria-label="Tabs">

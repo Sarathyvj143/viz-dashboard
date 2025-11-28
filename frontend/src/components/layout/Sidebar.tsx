@@ -145,8 +145,8 @@ export default function Sidebar({ isMobileMenuOpen, setIsMobileMenuOpen }: Sideb
         style={{ borderColor: theme.colors.borderPrimary }}
       >
         <div className="flex items-center overflow-hidden">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
-            <ChartBarIcon className="w-5 h-5 text-white" />
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `linear-gradient(to bottom right, ${theme.colors.accentPrimary}, ${theme.colors.accentSecondary})` }}>
+            <ChartBarIcon className="w-5 h-5" style={{ color: '#ffffff' }} />
           </div>
           {!isCollapsed && (
             <span
@@ -214,8 +214,8 @@ export default function Sidebar({ isMobileMenuOpen, setIsMobileMenuOpen }: Sideb
             {/* User Profile */}
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                  <span className="text-white font-semibold text-sm">
+                <div className="h-10 w-10 rounded-full flex items-center justify-center" style={{ background: `linear-gradient(to bottom right, ${theme.colors.accentPrimary}, ${theme.colors.accentSecondary})` }}>
+                  <span className="font-semibold text-sm" style={{ color: '#ffffff' }}>
                     {user?.username.charAt(0).toUpperCase()}
                   </span>
                 </div>
@@ -255,8 +255,8 @@ export default function Sidebar({ isMobileMenuOpen, setIsMobileMenuOpen }: Sideb
         ) : (
           <div className="flex flex-col items-center gap-3">
             {/* User Avatar */}
-            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-              <span className="text-white font-semibold text-sm">
+            <div className="h-10 w-10 rounded-full flex items-center justify-center" style={{ background: `linear-gradient(to bottom right, ${theme.colors.accentPrimary}, ${theme.colors.accentSecondary})` }}>
+              <span className="font-semibold text-sm" style={{ color: '#ffffff' }}>
                 {user?.username.charAt(0).toUpperCase()}
               </span>
             </div>

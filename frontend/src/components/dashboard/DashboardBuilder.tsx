@@ -4,6 +4,7 @@ import { PlusIcon, TrashIcon, Cog6ToothIcon, ChartBarIcon } from '@heroicons/rea
 import Button from '../common/Button';
 import WidgetConfigModal from './WidgetConfigModal';
 import { useContainerWidth } from '../../hooks/useContainerWidth';
+import { useTheme } from '../../contexts/ThemeContext';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
@@ -24,6 +25,7 @@ export default function DashboardBuilder({
   onSave,
   saving = false,
 }: DashboardBuilderProps) {
+  const { theme } = useTheme();
   const [configModalOpen, setConfigModalOpen] = useState(false);
   const [selectedWidgetId, setSelectedWidgetId] = useState<string | null>(null);
 
@@ -89,8 +91,8 @@ export default function DashboardBuilder({
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Dashboard Layout</h3>
-          <p className="text-sm text-gray-500">
+          <h3 className="text-lg font-semibold" style={{ color: theme.colors.textPrimary }}>Dashboard Layout</h3>
+          <p className="text-sm" style={{ color: theme.colors.textSecondary }}>
             Drag and resize widgets to customize your dashboard layout
           </p>
         </div>
@@ -106,7 +108,7 @@ export default function DashboardBuilder({
         </div>
       </div>
 
-      <div ref={containerRef} className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-2 sm:p-4 min-h-[400px] sm:min-h-[600px]">
+      <div ref={containerRef} className="border-2 border-dashed rounded-lg p-2 sm:p-4 min-h-[400px] sm:min-h-[600px]" style={{ backgroundColor: theme.colors.bgTertiary, borderColor: theme.colors.borderPrimary }}>
         <GridLayout
           className="layout"
           layout={initialLayout}
@@ -121,18 +123,20 @@ export default function DashboardBuilder({
           {initialLayout.map((item) => (
             <div
               key={item.i}
-              className="bg-white border-2 border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+              className="border-2 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+              style={{ backgroundColor: theme.colors.bgSecondary, borderColor: theme.colors.borderPrimary }}
             >
               <div className="h-full flex flex-col">
-                <div className="drag-handle bg-gray-100 border-b border-gray-200 px-2 sm:px-4 py-2 cursor-move flex items-center justify-between">
-                  <span className="text-xs sm:text-sm font-medium text-gray-700 truncate">
+                <div className="drag-handle border-b px-2 sm:px-4 py-2 cursor-move flex items-center justify-between" style={{ backgroundColor: theme.colors.bgTertiary, borderColor: theme.colors.borderPrimary }}>
+                  <span className="text-xs sm:text-sm font-medium truncate" style={{ color: theme.colors.textPrimary }}>
                     {item.chartId ? `Chart Widget #${item.chartId}` : 'Unconfigured Widget'}
                   </span>
                   <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                     <button
                       type="button"
                       onClick={() => configureWidget(item.i)}
-                      className="text-blue-600 hover:text-blue-700 p-1"
+                      className="hover:text-blue-700 p-1"
+                      style={{ color: theme.colors.accentPrimary }}
                       title="Configure widget"
                     >
                       <Cog6ToothIcon className="h-4 w-4" />
@@ -140,7 +144,8 @@ export default function DashboardBuilder({
                     <button
                       type="button"
                       onClick={() => removeWidget(item.i)}
-                      className="text-red-600 hover:text-red-700 p-1"
+                      className="hover:text-red-700 p-1"
+                      style={{ color: theme.colors.error }}
                       title="Remove widget"
                     >
                       <TrashIcon className="h-4 w-4" />
@@ -149,21 +154,22 @@ export default function DashboardBuilder({
                 </div>
                 <div className="flex-1 p-2 sm:p-4 flex items-center justify-center">
                   {item.chartId ? (
-                    <div className="text-center text-gray-700">
-                      <ChartBarIcon className="h-8 sm:h-12 w-8 sm:w-12 mx-auto text-blue-600 mb-2" />
+                    <div className="text-center" style={{ color: theme.colors.textPrimary }}>
+                      <ChartBarIcon className="h-8 sm:h-12 w-8 sm:w-12 mx-auto mb-2" style={{ color: theme.colors.accentPrimary }} />
                       <p className="text-xs sm:text-sm font-medium">Chart #{item.chartId}</p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs mt-1" style={{ color: theme.colors.textSecondary }}>
                         Size: {item.w} x {item.h}
                       </p>
                     </div>
                   ) : (
-                    <div className="text-center text-gray-500">
-                      <ChartBarIcon className="h-8 sm:h-12 w-8 sm:w-12 mx-auto text-gray-400 mb-2" />
+                    <div className="text-center" style={{ color: theme.colors.textSecondary }}>
+                      <ChartBarIcon className="h-8 sm:h-12 w-8 sm:w-12 mx-auto mb-2" style={{ color: theme.colors.textSecondary, opacity: 0.6 }} />
                       <p className="text-xs sm:text-sm">No chart selected</p>
                       <button
                         type="button"
                         onClick={() => configureWidget(item.i)}
-                        className="mt-2 text-xs text-blue-600 hover:text-blue-700 font-medium"
+                        className="mt-2 text-xs hover:text-blue-700 font-medium"
+                        style={{ color: theme.colors.accentPrimary }}
                       >
                         Configure Widget
                       </button>
@@ -178,8 +184,8 @@ export default function DashboardBuilder({
         {initialLayout.length === 0 && (
           <div className="flex items-center justify-center h-[500px]">
             <div className="text-center">
-              <p className="text-gray-500">No widgets yet</p>
-              <p className="text-sm text-gray-400 mt-1">
+              <p style={{ color: theme.colors.textSecondary }}>No widgets yet</p>
+              <p className="text-sm mt-1" style={{ color: theme.colors.textSecondary, opacity: 0.7 }}>
                 Click "Add Widget" to start building your dashboard
               </p>
             </div>

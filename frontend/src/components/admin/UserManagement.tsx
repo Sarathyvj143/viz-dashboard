@@ -183,22 +183,23 @@ export default function UserManagement() {
   return (
     <div className="rounded-lg shadow-md" style={{ backgroundColor: theme.colors.bgPrimary }}>
       {/* Header */}
-      <div className="p-6" style={{ ...styles.borderBottom() }}>
-        <div className="flex justify-between items-center mb-4">
-          <h2 style={styles.typography.h2}>User Management</h2>
+      <div className="p-3 sm:p-4 md:p-6" style={{ ...styles.borderBottom() }}>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-3 sm:mb-4">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-semibold" style={{ color: theme.colors.textPrimary }}>User Management</h2>
           <Button
             variant="primary"
             onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base"
           >
-            <PlusIcon className="w-5 h-5" />
-            Create User
+            <PlusIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="hidden sm:inline">Create User</span>
+            <span className="sm:hidden">Create</span>
           </Button>
         </div>
 
         {/* Filters */}
-        <div className="flex gap-4 flex-wrap">
-          <div className="flex-1 min-w-[200px]">
+        <div className="flex gap-2 sm:gap-3 md:gap-4 flex-wrap">
+          <div className="flex-1 min-w-[150px] sm:min-w-[200px]">
             <Input
               type="text"
               placeholder="Search by username or email..."
@@ -206,7 +207,7 @@ export default function UserManagement() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <div className="min-w-[200px]">
+          <div className="min-w-[140px] sm:min-w-[180px] md:min-w-[200px]">
             <Dropdown
               options={ROLE_OPTIONS}
               value={roleFilter}
@@ -215,7 +216,7 @@ export default function UserManagement() {
               clearable
             />
           </div>
-          <div className="min-w-[180px]">
+          <div className="min-w-[130px] sm:min-w-[160px] md:min-w-[180px]">
             <Dropdown
               options={STATUS_OPTIONS}
               value={activeFilter}
@@ -229,83 +230,60 @@ export default function UserManagement() {
 
       {/* Error Display */}
       {error && (
-        <div className="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-red-800">{error}</p>
+        <div className="mx-3 sm:mx-4 md:mx-6 mt-3 sm:mt-4 p-3 sm:p-4 rounded-md" style={styles.statusBox('error')}>
+          <p className="text-sm sm:text-base" style={styles.text.error}>{error}</p>
         </div>
       )}
 
       {/* User Table */}
-      <div className="overflow-x-auto">
+      <div>
         {loading ? (
-          <div className="p-12 text-center" style={{ color: theme.colors.textSecondary }}>Loading users...</div>
+          <div className="p-8 sm:p-12 text-center text-sm sm:text-base" style={{ color: theme.colors.textSecondary }}>Loading users...</div>
         ) : users.length === 0 ? (
-          <div className="p-12 text-center" style={{ color: theme.colors.textSecondary }}>No users found</div>
+          <div className="p-8 sm:p-12 text-center text-sm sm:text-base" style={{ color: theme.colors.textSecondary }}>No users found</div>
         ) : (
-          <table className="w-full">
-            <thead style={styles.table.header}>
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={styles.table.headerCell}>
-                  User
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={styles.table.headerCell}>
-                  Role
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={styles.table.headerCell}>
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={styles.table.headerCell}>
-                  Workspaces
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={styles.table.headerCell}>
-                  Last Login
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={styles.table.headerCell}>
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody style={styles.table.body}>
+          <>
+            {/* Mobile view - Cards */}
+            <div className="block md:hidden space-y-3 sm:space-y-4 p-3 sm:p-4">
               {users.map((user) => (
-                <tr
+                <div
                   key={user.id}
-                  style={{
-                    ...styles.table.row,
-                    ...(hoveredRowId === user.id ? styles.table.rowHover : {}),
-                  }}
-                  onMouseEnter={() => setHoveredRowId(user.id)}
-                  onMouseLeave={() => setHoveredRowId(null)}
+                  className="rounded-lg p-3 sm:p-4 shadow-sm"
+                  style={{ backgroundColor: theme.colors.bgSecondary, borderWidth: '1px', borderStyle: 'solid', borderColor: theme.colors.borderPrimary }}
                 >
-                  <td className="px-6 py-4">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium" style={styles.table.cell}>{user.username}</span>
-                      <span className="text-sm" style={styles.table.cellSecondary}>{user.email}</span>
+                  <div className="space-y-2 sm:space-y-3">
+                    {/* User Info */}
+                    <div>
+                      <div className="text-sm sm:text-base font-semibold break-words" style={{ color: theme.colors.textPrimary }}>{user.username}</div>
+                      <div className="text-xs sm:text-sm break-words" style={{ color: theme.colors.textSecondary }}>{user.email}</div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                      style={getRoleBadgeStyles(user.role, theme)}
-                    >
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={user.is_active ? styles.badge('success') : styles.badge('error')}>
-                      {user.is_active ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm" style={styles.table.cell}>
-                    {user.workspace_count}
-                  </td>
-                  <td className="px-6 py-4 text-sm" style={styles.table.cellSecondary}>
-                    {formatDate(user.last_login)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex gap-2">
+
+                    {/* Badges Row */}
+                    <div className="flex flex-wrap gap-2">
+                      <span
+                        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                        style={getRoleBadgeStyles(user.role, theme)}
+                      >
+                        {user.role}
+                      </span>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" style={user.is_active ? styles.badge('success') : styles.badge('error')}>
+                        {user.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+
+                    {/* Details Row */}
+                    <div className="flex justify-between items-center text-xs sm:text-sm" style={{ color: theme.colors.textSecondary }}>
+                      <span>{user.workspace_count} workspace{user.workspace_count !== 1 ? 's' : ''}</span>
+                      <span className="truncate ml-2">{formatDate(user.last_login)}</span>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-3 pt-2 border-t" style={{ borderColor: theme.colors.borderPrimary }}>
                       <button
                         onClick={() => handleViewUser(user)}
                         className="hover:opacity-80 transition-opacity"
                         title="View Details"
+                        aria-label="View user details"
                       >
                         <ThemedIcon Icon={EyeIcon} variant="info" className="w-5 h-5" />
                       </button>
@@ -313,6 +291,7 @@ export default function UserManagement() {
                         onClick={() => openEditModal(user)}
                         className="hover:opacity-80 transition-opacity"
                         title="Edit User"
+                        aria-label="Edit user"
                       >
                         <ThemedIcon Icon={PencilIcon} variant="accent" className="w-5 h-5" />
                       </button>
@@ -320,6 +299,7 @@ export default function UserManagement() {
                         onClick={() => openResetPasswordModal(user)}
                         className="hover:opacity-80 transition-opacity"
                         title="Reset Password"
+                        aria-label="Reset password"
                       >
                         <ThemedIcon Icon={KeyIcon} variant="warning" className="w-5 h-5" />
                       </button>
@@ -327,22 +307,126 @@ export default function UserManagement() {
                         onClick={() => handleDeleteUser(user.id)}
                         className="hover:opacity-80 transition-opacity"
                         title="Deactivate User"
+                        aria-label="Deactivate user"
                       >
                         <ThemedIcon Icon={TrashIcon} variant="error" className="w-5 h-5" />
                       </button>
                     </div>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Desktop view - Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="min-w-full w-full" style={{ tableLayout: 'auto' }}>
+                <thead style={styles.table.header}>
+                  <tr>
+                    <th className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-left text-xs md:text-sm font-medium uppercase tracking-wider whitespace-nowrap" style={{ ...styles.table.headerCell, width: 'auto' }}>
+                      User
+                    </th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-left text-xs md:text-sm font-medium uppercase tracking-wider whitespace-nowrap" style={{ ...styles.table.headerCell, width: 'auto' }}>
+                      Role
+                    </th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-left text-xs md:text-sm font-medium uppercase tracking-wider whitespace-nowrap" style={{ ...styles.table.headerCell, width: 'auto' }}>
+                      Status
+                    </th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-left text-xs md:text-sm font-medium uppercase tracking-wider whitespace-nowrap" style={{ ...styles.table.headerCell, width: 'auto' }}>
+                      Workspaces
+                    </th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-left text-xs md:text-sm font-medium uppercase tracking-wider whitespace-nowrap" style={{ ...styles.table.headerCell, width: 'auto' }}>
+                      Last Login
+                    </th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-left text-xs md:text-sm font-medium uppercase tracking-wider whitespace-nowrap" style={{ ...styles.table.headerCell, width: 'auto' }}>
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody style={styles.table.body}>
+                  {users.map((user) => (
+                    <tr
+                      key={user.id}
+                      style={{
+                        ...styles.table.row,
+                        ...(hoveredRowId === user.id ? styles.table.rowHover : {}),
+                      }}
+                      onMouseEnter={() => setHoveredRowId(user.id)}
+                      onMouseLeave={() => setHoveredRowId(null)}
+                    >
+                      <td className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 whitespace-nowrap">
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-xs md:text-sm lg:text-base font-medium truncate" style={styles.table.cell}>{user.username}</span>
+                          <span className="text-xs md:text-sm lg:text-base truncate" style={styles.table.cellSecondary}>{user.email}</span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 whitespace-nowrap">
+                        <span
+                          className="inline-flex items-center px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-medium"
+                          style={getRoleBadgeStyles(user.role, theme)}
+                        >
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 whitespace-nowrap">
+                        <span className="inline-flex items-center px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-medium" style={user.is_active ? styles.badge('success') : styles.badge('error')}>
+                          {user.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm lg:text-base whitespace-nowrap" style={styles.table.cell}>
+                        {user.workspace_count}
+                      </td>
+                      <td className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm lg:text-base whitespace-nowrap" style={styles.table.cellSecondary}>
+                        {formatDate(user.last_login)}
+                      </td>
+                      <td className="px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4">
+                        <div className="flex gap-1 md:gap-2">
+                          <button
+                            onClick={() => handleViewUser(user)}
+                            className="hover:opacity-80 transition-opacity"
+                            title="View Details"
+                            aria-label="View user details"
+                          >
+                            <ThemedIcon Icon={EyeIcon} variant="info" className="w-4 h-4 md:w-5 md:h-5" />
+                          </button>
+                          <button
+                            onClick={() => openEditModal(user)}
+                            className="hover:opacity-80 transition-opacity"
+                            title="Edit User"
+                            aria-label="Edit user"
+                          >
+                            <ThemedIcon Icon={PencilIcon} variant="accent" className="w-4 h-4 md:w-5 md:h-5" />
+                          </button>
+                          <button
+                            onClick={() => openResetPasswordModal(user)}
+                            className="hover:opacity-80 transition-opacity"
+                            title="Reset Password"
+                            aria-label="Reset password"
+                          >
+                            <ThemedIcon Icon={KeyIcon} variant="warning" className="w-4 h-4 md:w-5 md:h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteUser(user.id)}
+                            className="hover:opacity-80 transition-opacity"
+                            title="Deactivate User"
+                            aria-label="Deactivate user"
+                          >
+                            <ThemedIcon Icon={TrashIcon} variant="error" className="w-4 h-4 md:w-5 md:h-5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="px-6 py-4 flex items-center justify-between" style={{ borderTop: `1px solid ${theme.colors.borderPrimary}` }}>
-          <div className="text-sm" style={{ color: theme.colors.textPrimary }}>
+        <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between gap-3" style={{ borderTop: `1px solid ${theme.colors.borderPrimary}` }}>
+          <div className="text-xs sm:text-sm" style={{ color: theme.colors.textPrimary }}>
             Showing {users.length} of {total} users
           </div>
           <div className="flex gap-2">
@@ -351,10 +435,12 @@ export default function UserManagement() {
               size="sm"
               onClick={() => setPage(page - 1)}
               disabled={page === 1}
+              className="text-xs sm:text-sm"
             >
-              Previous
+              <span className="hidden sm:inline">Previous</span>
+              <span className="sm:hidden">Prev</span>
             </Button>
-            <span className="px-4 py-2 text-sm" style={{ color: theme.colors.textPrimary }}>
+            <span className="px-2 sm:px-4 py-2 text-xs sm:text-sm" style={{ color: theme.colors.textPrimary }}>
               Page {page} of {totalPages}
             </span>
             <Button
@@ -362,6 +448,7 @@ export default function UserManagement() {
               size="sm"
               onClick={() => setPage(page + 1)}
               disabled={page === totalPages}
+              className="text-xs sm:text-sm"
             >
               Next
             </Button>
@@ -565,8 +652,8 @@ export default function UserManagement() {
         title="Reset User Password"
       >
         <form onSubmit={handleResetPassword} className="space-y-4">
-          <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-            <p className="text-sm text-yellow-800">
+          <div className="mb-4 p-4 rounded-md" style={styles.statusBox('warning')}>
+            <p className="text-sm" style={styles.text.warning}>
               You are about to reset the password for <span className="font-medium">{selectedUser?.username}</span>
             </p>
           </div>

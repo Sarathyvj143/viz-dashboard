@@ -19,7 +19,7 @@ export default function ChartList() {
     fetchCharts();
   }, [fetchCharts]);
 
-  if (isLoading) {
+  if (isLoading || !charts) {
     return (
       <div>
         <Header
@@ -49,7 +49,7 @@ export default function ChartList() {
           </Button>
         }
       />
-      <div className="p-3 sm:p-4 md:p-6 max-w-full lg:max-w-7xl xl:max-w-[1600px] mx-auto">
+      <div className="p-3 sm:p-4 md:p-6 w-full">
         {charts.length === 0 ? (
           <EmptyState
             icon={ChartBarIcon}
