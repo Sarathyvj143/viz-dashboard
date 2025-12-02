@@ -1,5 +1,5 @@
 import Header from '../components/layout/Header';
-import ChartBuilder from '../components/charts/ChartBuilder';
+import ChartBuilderWizard from '../components/charts/ChartBuilderWizard';
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function ChartCreate() {
@@ -9,10 +9,10 @@ export default function ChartCreate() {
     <div style={{ backgroundColor: theme.colors.bgPrimary, minHeight: '100vh' }}>
       <Header
         title="Create Chart"
-        subtitle="Build a new chart from your data sources"
+        subtitle="Build a new chart from your data sources or virtual datasets"
       />
       <div className="p-3 sm:p-4 md:p-6 w-full">
-        <ChartBuilder />
+        <ChartBuilderWizard />
       </div>
     </div>
   );
