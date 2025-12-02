@@ -25,7 +25,7 @@ import { Theme } from '../../types/theme';
 
 // Chart data point interface
 interface ChartDataPoint {
-  [key: string]: string | number | undefined;
+  [key: string]: string | number | boolean | null | undefined;
 }
 
 interface ChartRendererProps {
